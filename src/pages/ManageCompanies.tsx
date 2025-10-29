@@ -9,54 +9,14 @@ import {
   FiMapPin,
   FiCalendar,
   FiUsers,
+  FiXCircle,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import type { Company } from "../types/companies.types";
 import axios from "axios";
 import { toast } from "sonner";
 import { IoMdClose } from "react-icons/io";
-
-// const companies = [
-//   {
-//     name: "TechCorp Inc.",
-//     initials: "TE",
-//     industry: "Technology",
-//     email: "hr@techcorp.com",
-//     phone: "+91 80 1234 5678",
-//     location: "Bangalore, India",
-//     size: "500+ employees",
-//     jobs: "1 active jobs",
-//     founded: "Founded 2010",
-//     status: "Verified",
-//     statusColor: "bg-green-100 text-green-600",
-//   },
-//   {
-//     name: "DataTech Solutions",
-//     initials: "DA",
-//     industry: "Analytics",
-//     email: "careers@datatech.com",
-//     phone: "+91 22 2345 6789",
-//     location: "Mumbai, India",
-//     size: "51-500 employees",
-//     jobs: "1 active jobs",
-//     founded: "Founded 2015",
-//     status: "Verified",
-//     statusColor: "bg-green-100 text-green-600",
-//   },
-//   {
-//     name: "StartupXYZ",
-//     initials: "ST",
-//     industry: "Fintech",
-//     email: "jobs@startupxyz.com",
-//     phone: "+91 40 3456 7890",
-//     location: "Hyderabad, India",
-//     size: "1-50 employees",
-//     jobs: "1 active jobs",
-//     founded: "Founded 2020",
-//     status: "Pending",
-//     statusColor: "bg-yellow-100 text-yellow-600",
-//   },
-// ];
+import { TbBuildingSkyscraper } from "react-icons/tb";
 
 const industries = [
   "All Industries",
@@ -81,6 +41,7 @@ const ManageCompanies: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("All Status");
   const [selectedIndustry, setSelectedIndustry] =
     useState<string>("All Industries");
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const token = localStorage.getItem("token");
 
   const stats = [
@@ -130,9 +91,9 @@ const ManageCompanies: React.FC = () => {
       );
 
       const companiesProfiles: Company[] = [];
-      response.data.data.map(c=> {
+      response.data.data.map((c: any) => {
         c.role === "COMPANY" && companiesProfiles.push(c);
-      })
+      });
 
       setCompaniesProfiles(companiesProfiles);
       setTotalCompaniesProfiles(companiesProfiles);
@@ -154,7 +115,7 @@ const ManageCompanies: React.FC = () => {
       setTotalPendingJobs(pendingJobs);
       setTotalVerifiedComanies(verifiedCompanies);
     } catch (err) {
-      toast.error("Error in fetching the student verfication application");
+      toast.error("Error in fetching the company verification data");
     }
   };
 
@@ -173,6 +134,15 @@ const ManageCompanies: React.FC = () => {
 
   useEffect(() => {
     fetchCompanies();
+  }, []);
+
+  // Close modal with ESC key
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedCompany(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
   return (
@@ -243,7 +213,7 @@ const ManageCompanies: React.FC = () => {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-600/10 flex items-center justify-center font-bold text-sm text-blue-500">
-                    LOGO
+                    {company.name.charAt(0)}
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
@@ -257,8 +227,8 @@ const ManageCompanies: React.FC = () => {
                     company.verificationStatus.toLowerCase() === "approved"
                       ? "bg-green-100 text-green-600"
                       : company.verificationStatus.toLowerCase() === "pending"
-                      ? "bg-gray-100 text-gray-600"
-                      : "bg-red-100 text-red-600"
+                        ? "bg-gray-100 text-gray-600"
+                        : "bg-red-100 text-red-600"
                   }`}
                 >
                   {company.verificationStatus}
@@ -276,9 +246,6 @@ const ManageCompanies: React.FC = () => {
                 <p className="flex items-center gap-2">
                   <FiMapPin size={14} /> {company.location}
                 </p>
-                {/* <p className="flex items-center gap-2">
-                  <FiUsers size={14} /> {company.size}
-                </p> */}
                 <p className="flex items-center gap-2">
                   <FiBriefcase size={14} /> {company.website}
                 </p>
@@ -294,17 +261,154 @@ const ManageCompanies: React.FC = () => {
 
               {/* Actions */}
               <div className="flex gap-3">
-                <button className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 hover:cursor-pointer">
+                <button
+                  className="flex-1 border border-black/10 rounded-md py-2 flex items-center justify-center gap-1 bg-gray-50 text-sm hover:cursor-pointer hover:bg-gray-100"
+                  onClick={() => setSelectedCompany(company)}
+                >
+                  <TbBuildingSkyscraper className="h-5 w-5" />
                   View Profile
                 </button>
-                <button className="flex px-4 py-2 text-sm border border-red-300 bg-red-50 rounded-md text-red-600 hover:bg-red-100 hover:cursor-pointer">
-                <IoMdClose size={20} />
-                  Revoke
-                </button>
+                {company.verificationStatus === "APPROVED" ? (
+                  <button className="border border-red-500/10 rounded-sm py-2 px-4 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-sm text-white hover:cursor-pointer">
+                    <FiXCircle />
+                    Revoke
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                      <FiCheckCircle className="text-green-500" />
+                      <span className="text-green-500">Accept</span>
+                    </button>
+                    <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                      <FiXCircle className="text-red-500" />
+                      <span className="text-red-500">Reject</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
+
+        {/* --- Modal for View Profile --- */}
+        {selectedCompany && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={() => setSelectedCompany(null)}
+          >
+            <div
+              className="bg-white rounded-lg shadow-md w-full max-w-lg relative mx-4 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Company Profile
+                </h2>
+                <button
+                  onClick={() => setSelectedCompany(null)}
+                  className="text-gray-500 hover:text-gray-700 transition hover:cursor-pointer"
+                  aria-label="Close profile"
+                >
+                  <IoMdClose size={22} />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 max-h-[75vh] overflow-y-auto">
+                <div className="flex items-center justify-between text-center bg-gray-50/50 border-b-0 px-3 py-2 border border-black/10 rounded-sm rounded-bl-none rounded-br-none">
+                  <div className="flex flex-col w-3/4 items-start">
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {selectedCompany.name}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {selectedCompany.industry}
+                    </p>
+                    <span
+                      className={`px-2 py-0.5 mt-2 text-xs font-medium rounded-sm shadow-xs ${
+                        selectedCompany.verificationStatus === "APPROVED"
+                          ? "bg-green-50 text-green-500 border border-green-500/10"
+                          : selectedCompany.verificationStatus === "PENDING"
+                            ? "bg-yellow-50 text-yellow-500 border border-yellow-500/20"
+                            : "bg-red-50 text-red-500 border border-red-500/10"
+                      }`}
+                    >
+                      {selectedCompany.verificationStatus}
+                    </span>
+                  </div>
+
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center shadow-inner font-bold text-blue-700 text-xl">
+                    {selectedCompany.name.charAt(0)}
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="flex flex-col gap-1 text-sm text-gray-700 border border-black/10 border-t-0 px-3 py-2 bg-gray-50/50 rounded-sm rounded-tl-none rounded-tr-none">
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1">
+                      <FiMail size={14} /> Email:
+                    </span>
+                    <span>{selectedCompany.email || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1">
+                      <FiPhone size={14} /> Phone:
+                    </span>
+                    <span>{selectedCompany.phone || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1">
+                      <FiMapPin size={14} /> Location:
+                    </span>
+                    <span>{selectedCompany.location || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1">
+                      <FiUsers size={14} /> Company Size:
+                    </span>
+                    <span>{selectedCompany.length || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1">
+                      <FiBriefcase size={14} /> Website:
+                    </span>
+                    <span>{selectedCompany.website || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">
+                    <span className="font-medium flex items-center gap-1 ">
+                      <FiCalendar size={14} /> Founded:
+                    </span>
+                    <span>{selectedCompany.founded || "N/A"}</span>
+                  </div>
+
+                  {/* Description */}
+                  {selectedCompany.description && (
+                    <div className="mt-4 border border-black/10 px-3 py-2 rounded-sm bg-white pt-3">
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        {selectedCompany.description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-3 flex justify-end">
+                <button
+                  onClick={() => setSelectedCompany(null)}
+                  className="px-5 py-1.5 text-sm font-medium text-gray-700 rounded-sm border border-black/10 bg-gray-100 hover:bg-gray-100 transition hover:cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

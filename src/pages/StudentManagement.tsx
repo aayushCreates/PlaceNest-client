@@ -14,6 +14,7 @@ import SideBar from "../components/SideBar";
 import { toast } from "sonner";
 import axios from "axios";
 import type { StudentVerification } from "../types/student.types";
+import { LuUserRound } from "react-icons/lu";
 
 const filters = [
   {
@@ -214,22 +215,10 @@ export default function StudentManagement() {
                 </div>
                 <div className="flex gap-3 mt-4">
                   <button
-                    onClick={() => setSelectedStudent(s)} // ✅ open modal
-                    className="flex-1 border border-black/10 rounded-md py-2 flex items-center justify-center gap-2 hover:bg-gray-50 text-sm hover:cursor-pointer"
+                    onClick={() => setSelectedStudent(s)}
+                    className="flex-1 border border-black/10 rounded-md py-2 flex items-center justify-center gap-1 bg-gray-50 text-sm hover:cursor-pointer hover:bg-gray-100"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 20h9" />
-                      <path d="M12 4h9" />
-                      <path d="M4 12h16" />
-                    </svg>
+                    <LuUserRound className="h-5 w-5" />
                     View Profile
                   </button>
 
