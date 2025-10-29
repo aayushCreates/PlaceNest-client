@@ -8,11 +8,12 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiSearch,
+  FiX,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { toast } from "sonner";
 import axios from "axios";
-import type { StudentProfile, StudentVerification } from "../types/student.types";
+import type { StudentVerification } from "../types/student.types";
 
 const filters = [
   {
@@ -29,6 +30,7 @@ export default function StudentManagement() {
   const [studentVerifyApplications, setStudentVerifyApplications] = useState<
     StudentVerification[]
   >([]);
+  const [selectedStudent, setSelectedStudent] = useState<StudentVerification | null>(null); // ✅ NEW
   const [totalVerifiedStudents, setTotalVerifiedStudents] = useState<number>(0);
   const [totalPendingStudents, setTotalPendingStudents] = useState<number>(0);
   const [totalRejectedStudents, setTotalRejectedStudents] = useState<number>(0);
@@ -77,9 +79,9 @@ export default function StudentManagement() {
       );
 
       const studentProfiles: StudentVerification[] = [];
-      response.data.data.map(s=> {
+      response.data.data.map((s: any) => {
         s.role === "STUDENT" && studentProfiles.push(s);
-      })
+      });
 
       setStudentVerifyApplications(studentProfiles);
 
@@ -87,23 +89,22 @@ export default function StudentManagement() {
       let verified = 0;
       let rejected = 0;
 
-      studentProfiles.map(a=> {
-        if(a.verificationStatus === "PENDING"){
-          pending++;
-        }else if (a.verificationStatus === "APPROVED"){
-          verified++;
-        }else {
-          rejected++;
-        }
-      })
+      studentProfiles.map((a) => {
+        if (a.verificationStatus === "PENDING") pending++;
+        else if (a.verificationStatus === "APPROVED") verified++;
+        else rejected++;
+      });
       setTotalPendingStudents(pending);
       setTotalVerifiedStudents(verified);
       setTotalRejectedStudents(rejected);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data?.message || "Error in fetching the student verfication application");
+        toast.error(
+          err.response.data?.message ||
+            "Error in fetching the student verification application"
+        );
       } else {
-        toast.error("Error in fetching the student verfication application");
+        toast.error("Error in fetching the student verification application");
       }
     }
   };
@@ -113,13 +114,12 @@ export default function StudentManagement() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-gray-700 font-sans">
+    <div className="min-h-screen bg-white text-gray-700 font-sans relative">
       <SideBar />
 
-      <main className="flex-1 p-8 pl-72">
-        {/* Content */}
+      <main className="flex-1 p-8 lg:pl-72">
         <section className="space-y-6">
-          {/* Title & stats */}
+          {/* Header */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               Student Management
@@ -129,6 +129,7 @@ export default function StudentManagement() {
             </p>
           </div>
 
+          {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {stats.map((stat, index) => (
               <div key={index} className={stat.boxCss}>
@@ -181,7 +182,6 @@ export default function StudentManagement() {
                 className="border border-black/10 rounded-md p-4 space-y-3 shadow-xs"
               >
                 <div className="flex items-center gap-4">
-                  {/* <div>{s.avatar}</div> */}
                   <div>
                     <p className="font-semibold text-gray-900">{s.name}</p>
                     <p className="text-sm text-gray-500">{s.id}</p>
@@ -213,7 +213,10 @@ export default function StudentManagement() {
                   </p>
                 </div>
                 <div className="flex gap-3 mt-4">
-                  <button className="flex-1 border-black/10 border border-black/10-gray-300 rounded-md py-2 flex items-center justify-center gap-2 hover:bg-gray-50 text-sm hover:cursor-pointer">
+                  <button
+                    onClick={() => setSelectedStudent(s)} // ✅ open modal
+                    className="flex-1 border border-black/10 rounded-md py-2 flex items-center justify-center gap-2 hover:bg-gray-50 text-sm hover:cursor-pointer"
+                  >
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -238,13 +241,13 @@ export default function StudentManagement() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <button className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
-                      <FiXCircle className="text-green-500" />
-                      <span className="text-green-500">Accept</span>
-                    </button>
+                        <FiCheckCircle className="text-green-500" />
+                        <span className="text-green-500">Accept</span>
+                      </button>
                       <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
-                      <FiXCircle className="text-red-500" />
-                      <span className="text-red-500">Reject</span>
-                    </button>
+                        <FiXCircle className="text-red-500" />
+                        <span className="text-red-500">Reject</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -253,6 +256,71 @@ export default function StudentManagement() {
           </div>
         </section>
       </main>
+
+      {/* ✅ Profile Modal */}
+      {selectedStudent && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/40 z-50"
+          onClick={() => setSelectedStudent(null)}
+        >
+          <div
+            className="bg-white rounded-md shadow-lg p-6 w-full max-w-md relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedStudent(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <FiX size={20} />
+            </button>
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                <FiUser className="text-3xl text-gray-600" />
+              </div>
+
+              <h2 className="text-lg font-semibold text-gray-900">
+                {selectedStudent.name}
+              </h2>
+              
+              <p className="text-sm text-gray-500">{selectedStudent.email}</p>
+              <p
+                className={`px-3 py-1 rounded-sm shadow-xs text-xs font-semibold ${
+                  selectedStudent.verificationStatus === "APPROVED"
+                    ? "bg-blue-100 text-blue-600 border border-blue-500/10"
+                    : selectedStudent.verificationStatus === "PENDING"
+                    ? "bg-gray-100 text-gray-600 border border-gray-500/10"
+                    : "bg-red-100 text-red-600 border border-red-500/10"
+                }`}
+              >
+                {selectedStudent.verificationStatus}
+              </p>
+
+              <div className="w-full mt-4 space-y-2 text-sm text-gray-700">
+
+                <p className="flex justify-between  border px-3 py-2 bg-gray-50 rounded-sm border-black/10">
+                  <span className="font-medium">Phone:</span>{" "}
+                  <span>{selectedStudent.phone}</span>
+                </p>
+
+                <p className="flex justify-between  border px-3 py-2 bg-gray-50 rounded-sm border-black/10">
+                  <span className="font-medium">Branch:</span>{" "}
+                  <span>{selectedStudent.branch}</span>
+                </p>
+
+                <p className="flex justify-between  border px-3 py-2 bg-gray-50 rounded-sm border-black/10">
+                  <span className="font-medium">Year:</span>{" "}
+                  <span>{selectedStudent.year}</span>
+                </p>
+
+                <p className="flex justify-between border px-3 py-2 bg-gray-50 rounded-sm border-black/10">
+                  <span className="font-medium">Student ID:</span>{" "}
+                  <span>{selectedStudent.id}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
