@@ -17,6 +17,7 @@ import StudentJobs from "./pages/StudentJobs";
 import JobDetails from "./pages/JobDetail";
 import StudentJobApplications from "./pages/StudentJobApplications";
 import Profile from "./pages/Profile";
+import OtherJobs from "./pages/OtherJobs";
 
 const PublicOnlyRoute = () => {
   const { isAuthenticated, user } = useAuth();
@@ -54,6 +55,7 @@ function App() {
       <Route path="/student/applications" element={<StudentApplications />} />
       <Route path="/student/jobs" element={<StudentJobs />} />
       <Route path="/student/job/:id" element={<JobDetails />} />
+      <Route path="/other-jobs/" element={<OtherJobs />} />
 
       <Route path="/company/dashboard" element={<CompanyDashboard />} />
       <Route

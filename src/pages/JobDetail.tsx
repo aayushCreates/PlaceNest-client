@@ -53,10 +53,15 @@ export default function JobDetails() {
   const token = localStorage.getItem("token");
   const [jobDetail, setJobsDetail] = useState<Job>();
   const [applicationDetails, setApplicationDetails] = useState<Application>();
+  const [jobLoading, setJobLoading] = useState(true);
+const [applicationLoading, setApplicationLoading] = useState(true);
+
+
 
   const { id } = useParams();
 
   const fetchJobDetail = async () => {
+    setJobLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_API_URL}/job/${id}`,
@@ -72,10 +77,13 @@ export default function JobDetails() {
       }
     } catch (err) {
       toast.error("Error in fetching jobs");
+    } finally {
+      setJobLoading(false);
     }
   };
 
   const myApplicationDetails = async () => {
+    setApplicationLoading(true);
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_API_URL}/application/${id}`,
@@ -91,8 +99,29 @@ export default function JobDetails() {
       }
     } catch (err) {
       toast.error("Error in fetching application");
+    } finally {
+      setApplicationLoading(false);
     }
   };
+
+  const handleApply = async ()=> {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_API_URL}/job/${id}/apply`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setApplicationDetails(response.data.data);
+      }
+    } catch(err) {
+      toast.error("Error in apply job");
+    }
+  }
 
   useEffect(() => {
     fetchJobDetail();
@@ -105,7 +134,9 @@ export default function JobDetails() {
       <SideBar />
 
       {/* Body */}
-      <main className="flex-1 pl-72 p-8">
+      {
+        (!jobLoading && !applicationLoading) ? (
+          <main className="flex-1 pl-72 p-8">
         <div className="max-w-6xl mx-auto py-6 px-4">
           {/* Back Button */}
           <button
@@ -148,7 +179,8 @@ export default function JobDetails() {
                 </div>
               </div>
               {!applicationDetails && (
-                <button className="bg-blue-500 !text-white font-medium rounded-sm px-3 py-1.5 shadow-xs hover:cursor-pointer">
+                <button className="bg-blue-500 !text-white font-medium rounded-sm px-3 py-1.5 shadow-xs hover:cursor-pointer"
+                onClick={handleApply}>
                   Apply Now
                 </button>
               )}
@@ -262,6 +294,14 @@ export default function JobDetails() {
           </div>
         </div>
       </main>
+        ) : (
+          <div className="flex min-h-screen w-full pl-72 p-8 items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          </div>
+        </div>
+        )
+      }
     </div>
   );
 }

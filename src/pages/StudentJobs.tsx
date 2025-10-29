@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiSearch, FiMapPin, FiClock, FiFileText } from "react-icons/fi";
+import { FiSearch, FiMapPin, FiClock, FiFileText, FiBriefcase } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -114,10 +114,12 @@ const StudentJobs: React.FC = () => {
                     <h2 className="font-semibold text-lg text-gray-800">
                       {job.title}
                     </h2>
-                    <p className="text-gray-500 text-sm">{job.company.name}</p>
+                    <p className="text-gray-500 text-sm flex items-center gap-1">
+                    <FiBriefcase /> 
+                    {job.company?.name}</p>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <span className="px-3 py-1 rounded-sm shadow-xs font-medium bg-green-100 text-green-700">
+                    <span className="px-3 py-1 rounded-sm font-medium bg-green-100 text-green-700">
                       {job.type}
                     </span>
                     <span className="flex items-center gap-1 text-gray-400">
@@ -150,7 +152,7 @@ const StudentJobs: React.FC = () => {
                     <span className="flex items-center gap-1">
                       <FiFileText /> Deadline: {job.deadline}
                     </span>
-                    <span className="font-medium">{job.salary}</span>
+                    <span className="font-medium">₹{job.salary}</span>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -159,15 +161,6 @@ const StudentJobs: React.FC = () => {
                     >
                       View Details
                     </button>
-                    {/* {job.applied ? (
-                    <span className="px-4 py-2 rounded-md text-green-600 border border-green-600/10 bg-green-50 text-sm">
-                      Applied
-                    </span>
-                  ) : (
-                    <button className="px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition text-sm">
-                      Apply Now
-                    </button>
-                  )} */}
                   </div>
                 </div>
               </div>

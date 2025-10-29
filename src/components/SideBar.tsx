@@ -24,8 +24,9 @@ type SideBarType = {
 const studentSidebarItems: SideBarType[] = [
   { label: "Dashboard", icon: MdDashboard, tab: "dashboard", route: "/student/dashboard" },
   { label: "Profile", icon: FiUser, tab: "profile", route: "/profile" },
-  { label: "jobs", icon: FiBriefcase, tab: "jobs", route: "/student/jobs" },
+  { label: "Campus Jobs", icon: FiBriefcase, tab: "jobs", route: "/student/jobs" },
   { label: "Applications", icon: FiFileText, tab: "applications", route: "/student/applications" },
+  { label: "Other Jobs", icon: FiBriefcase, tab: "other-jobs", route: "/other-jobs" },
   { label: "Resume Assistant", icon: FiMessageSquare, tab: "resume", route: "/student/resume-review" },
 ];
 
@@ -42,7 +43,9 @@ const coordinatorSidebarItems: SideBarType[] = [
   { label: "Profile", icon: FiUser, tab: "profile", route: "/profile" },
   { label: "Students Verification", icon: RiPassValidLine, tab: "verify-students", route: "/coordinator/manage-students" },
   // { label: "Job Approvals", icon: GrValidate, tab: "job-approvals", route: "/coordinator/manage-jobs" },
-  { label: "Companies Verifications", icon: FaRegBuilding, tab: "companies", route: "/coordinator/manage-companies" }
+  { label: "Companies Verifications", icon: FaRegBuilding, tab: "companies", route: "/coordinator/manage-companies" },
+  // { label: "Company Jobs", icon: FiBriefcase, tab: "company-jobs", route: "/other-jobs" },,
+  { label: "JobBoard Jobs", icon: FiBriefcase, tab: "other-jobs", route: "/other-jobs" } 
 ];
 
 

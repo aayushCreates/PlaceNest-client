@@ -3,7 +3,6 @@ import {
   FiCheckCircle,
   FiClipboard,
   FiBriefcase,
-  FiCheck,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useEffect, useState } from "react";
@@ -12,85 +11,71 @@ import axios from "axios";
 import { toast } from "sonner";
 import type { StudentProfile } from "../types/student.types";
 import type { Company } from "../types/companies.types";
-import type { Application } from "../types/application.types";
 
 // Data Arrays for Dynamic Rendering
 
-const pendingActions = [
-  {
-    heading: "Student Verifications",
-    data: "1 students pending verification",
-    buttonText: "Review",
-    buttonCss:
-      "bg-yellow-500 text-white text-sm px-3 py-1 rounded-sm shadow-xs hover:bg-yellow-600",
-    boxCss:
-      "flex justify-between items-center rounded-sm p-3 bg-yellow-300/10 border border-yellow-500/40",
-  },
-  {
-    heading: "Job Approvals",
-    data: "2 job postings pending approval",
-    buttonText: "Review",
-    buttonCss:
-      "bg-blue-500 text-white text-sm px-3 py-1 rounded-sm hover:bg-blue-600",
-    boxCss:
-      "flex justify-between items-center rounded-sm p-3 bg-blue-300/10 border border-blue-500/40",
-  },
-  {
-    heading: "Company Verifications",
-    data: "1 company pending verification",
-    buttonText: "Review",
-    buttonCss:
-      "bg-green-500 text-white text-sm px-3 py-1 rounded-sm hover:bg-green-600",
-    boxCss:
-      "flex justify-between items-center rounded-sm p-3 bg-green-300/10 border border-green-500/40",
-  },
-];
+const getBranchWisePlacement = (students: any, branch: string)=> {
+    let totalPlace = 0;
+    students.map((s: any)=> {
+      if(s.branch === branch && s.isPlaced == true) {
+        totalPlace++;
+      }
+    });
 
-const recentActivities = [
-  {
-    icon: <FiUsers className="mt-1 text-blue-500" />,
-    description: "John Doe from Computer Science registered",
-    time: "2 hours ago",
-  },
-  {
-    icon: <FiBriefcase className="mt-1 text-green-500" />,
-    description: "TechStart Inc. (Technology) registered",
-    time: "4 hours ago",
-  },
-  {
-    icon: <FiClipboard className="mt-1 text-yellow-500" />,
-    description: "Frontend Developer posted by TechCorp",
-    time: "6 hours ago",
-  },
-  {
-    icon: <FiUsers className="mt-1 text-blue-500" />,
-    description: "Jane Smith applied for Data Analyst",
-    time: "8 hours ago",
-  },
-  {
-    icon: <FiCheck className="mt-1 text-green-500" />,
-    description: "Mike Johnson selected by InnovateTech",
-    time: "1 day ago",
-  },
-];
+    return totalPlace;
+}
 
-const departments = [
-  { dep: "Computer Science", total: 45, placed: 12, pct: 27 },
-  { dep: "Electronics", total: 38, placed: 8, pct: 21 },
-  { dep: "Mechanical", total: 42, placed: 10, pct: 24 },
-  { dep: "Civil", total: 35, placed: 6, pct: 17 },
-  { dep: "Chemical", total: 28, placed: 5, pct: 18 },
-];
+const getBranchWiseStudents = (students: any, branch: string)=> {
+  let totalStudents = 0;
+  students.map((s: any)=> {
+    if(s.branch === branch) {
+      totalStudents++;
+    }
+  });
+
+  return totalStudents;
+}
 
 export default function CoordinatorDashboard() {
+  const token = localStorage.getItem("token");
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [totalActiveJobs, setTotalActiveJobs] = useState<number>(0);
   const [totalStudentPlaced, setTotalStudentPlaced] = useState<number>(0);
+  const [pendingStudentVerifications, setPendingStudentsVerifications] = useState<number>(0);
+  const [pendingCompanyVerifications, setPendingCompanyVerifications] = useState<number>(0);
 
-  const token = localStorage.getItem("token");
-
+  const pendingActions = [
+    {
+      heading: "Student Verifications",
+      data: `${pendingStudentVerifications} students pending verification`,
+      buttonText: "Review",
+      buttonCss:
+        "bg-blue-500 text-white text-sm px-3 py-1 rounded-sm hover:bg-blue-600",
+      boxCss:
+        "flex justify-between items-center rounded-sm p-3 bg-blue-300/10 border border-blue-500/40",
+    },
+    // {
+    //   heading: "Job Approvals",
+    //   data: "2 job postings pending approval",
+    //   buttonText: "Review",
+    //   buttonCss:
+    //     "bg-blue-500 text-white text-sm px-3 py-1 rounded-sm hover:bg-blue-600",
+    //   boxCss:
+    //     "flex justify-between items-center rounded-sm p-3 bg-blue-300/10 border border-blue-500/40",
+    // },
+    {
+      heading: "Company Verifications",
+      data: `${pendingCompanyVerifications} company pending verification`,
+      buttonText: "Review",
+      buttonCss:
+        "bg-green-500 text-white text-sm px-3 py-1 rounded-sm hover:bg-green-600",
+      boxCss:
+        "flex justify-between items-center rounded-sm p-3 bg-green-300/10 border border-green-500/40",
+    },
+  ];
   const stats = [
     {
       icon: <FiUsers className="text-2xl" />,
@@ -118,12 +103,40 @@ export default function CoordinatorDashboard() {
     },
     {
       icon: <FiCheckCircle className="text-2xl" />,
-      count: 0,
+      count: totalStudentPlaced,
       title: "Students Placed",
       titleColor: "text-green-600",
       iconColor: "text-green-600",
       boxCss: "border border-green-600/30",
     },
+  ];
+  const departments = [
+    { 
+      dep: "Computer Science Engineering", 
+      total: getBranchWiseStudents(students, "CSE"), 
+      placed: getBranchWisePlacement(students, "CSE"), 
+      pct: (getBranchWisePlacement(students, "CSE")/getBranchWiseStudents(students, "CSE"))*100 
+    },
+    { dep: "Electronics and Communication Engineering", 
+      total: getBranchWiseStudents(students, "ECE"), 
+      placed: getBranchWisePlacement(students, "ECE"), 
+      pct: (getBranchWisePlacement(students, "ECE")/getBranchWiseStudents(students, "ECE"))*100 },
+    { dep: "Mechanical Engineering", 
+      total: getBranchWiseStudents(students, "ME"), 
+      placed: getBranchWisePlacement(students, "ME"), 
+      pct: (getBranchWisePlacement(students, "ME")/getBranchWiseStudents(students, "ME"))*100 },
+    { dep: "Civil Engineering", 
+      total: getBranchWiseStudents(students, "CE"), 
+      placed: getBranchWisePlacement(students, "CE"), 
+      pct: (getBranchWisePlacement(students, "CE")/getBranchWiseStudents(students, "CE"))*100 },
+    { dep: "Cybersecurity", 
+      total: getBranchWiseStudents(students, "CY"), 
+      placed: getBranchWisePlacement(students, "CY"), 
+      pct: (getBranchWisePlacement(students, "CY")/getBranchWiseStudents(students, "CY"))*100 },
+    { dep: "Electronics and Instrumental Control Engineering", 
+      total: getBranchWiseStudents(students, "EIC"), 
+      placed: getBranchWisePlacement(students, "EIC"), 
+      pct: (getBranchWisePlacement(students, "EIC")/getBranchWiseStudents(students, "EIC"))*100 },
   ];
 
   const fetchJobs = async () => {
@@ -141,7 +154,7 @@ export default function CoordinatorDashboard() {
         setJobs(response.data.data);
 
         let activeJobs = 0;
-        response.data.data.map(j=> {
+        response.data.data.map((j: any)=> {
           if(j.status === "ACTIVE") { 
             activeJobs++;
           }
@@ -164,6 +177,20 @@ export default function CoordinatorDashboard() {
       );
 
         setStudents(response.data.data);
+
+        let totalPlacedStudents = 0;
+        let totalUnVerifiedProfiles = 0;
+        response.data.data.map((s: any)=> {
+          if(s.isPlaced) {
+            totalPlacedStudents++;
+          }
+          if(!s.verifiedProfile) {
+            totalUnVerifiedProfiles++;
+          }
+        })
+
+        setTotalStudentPlaced(totalPlacedStudents);
+        setPendingStudentsVerifications(totalUnVerifiedProfiles);
     } catch (err) {
       toast.error("Error in fetching jobs");
     }
@@ -181,6 +208,14 @@ export default function CoordinatorDashboard() {
       );
 
       setCompanies(response.data.data);
+
+      let pendingCompany = 0;
+      response.data.data.map((c: any)=> {
+        if (!c.verifiedProfile) {
+          pendingCompany++;
+        }
+      })
+      setPendingCompanyVerifications(pendingCompany);
     } catch (err) {
       toast.error("Error in fetching jobs");
     }
