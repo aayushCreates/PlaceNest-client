@@ -104,12 +104,12 @@ const ResumeAssistant: React.FC = () => {
         <div className="flex flex-col flex-1 bg-white border border-black/10 rounded-md shadow-sm p-6">
           <div className="flex-1 mb-4 space-y-4 bg-gray-50 rounded-md p-4 border border-gray-100">
             {messages.length === 0 && !loading && (
-              <p className="text-gray-400 text-center">
+              <p className="text-gray-400 text-sm text-center">
                 👋 Start by uploading your resume or asking a question.
               </p>
             )}
 
-            <div className="h-84 overflow-y-scroll flex flex-col gap-3">
+            <div className="h-72 overflow-y-scroll flex flex-col gap-3">
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
