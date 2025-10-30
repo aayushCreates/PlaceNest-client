@@ -98,13 +98,6 @@ export default function StudentJobApplications() {
   const [jobApplications, setJobApplications] = useState<Application[]>([]);
   const token = localStorage.getItem("token");
 
-  // const counts = {
-  //   total: MOCK.length,
-  //   shortlisted: MOCK.filter((m) => m.status === "shortlisted").length,
-  //   rejected: MOCK.filter((m) => m.status === "rejected").length,
-  //   selected: MOCK.filter((m) => m.status === "selected").length,
-  // };
-
   const fetchApplications = async () => {
     try {
       const response = await axios.get(
@@ -158,7 +151,7 @@ export default function StudentJobApplications() {
           {/* stat cards */}
           <section className="grid grid-cols-4 gap-4 mb-6">
             {stats.map((s) => (
-              <div className={`${s.boxCss} flex`} key={s.heading}>
+              <div className={`${s.boxCss}flex`} key={s.heading}>
                 {s.icon}
                 <div className="flex gap-3">
                   <span className={`${s.contentCss} text-md font-semibold`}>

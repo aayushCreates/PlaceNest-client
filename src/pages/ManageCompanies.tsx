@@ -50,7 +50,7 @@ const ManageCompanies: React.FC = () => {
       data: companiesProfiles.length,
       icon: <FiBriefcase className="h-6 w-6 text-gray-600" />,
       boxCss:
-        "border border-gray-200 rounded-md bg-white shadow-xs p-4 flex items-center gap-3",
+        "border border-gray-500/20 bg-gray-50/40 rounded-md shadow-xs p-4 flex items-center gap-3",
       contentCss: "text-gray-700",
     },
     {
@@ -225,10 +225,10 @@ const ManageCompanies: React.FC = () => {
                 <span
                   className={`px-3 py-1 text-xs font-medium rounded-sm ${
                     company.verificationStatus.toLowerCase() === "approved"
-                      ? "bg-green-100 text-green-600"
+                      ? "bg-green-50 text-green-600 border border-green-500/20"
                       : company.verificationStatus.toLowerCase() === "pending"
-                        ? "bg-gray-100 text-gray-600"
-                        : "bg-red-100 text-red-600"
+                        ? "bg-gray-50 text-gray-600 border border-gray-500/20"
+                        : "bg-red-50 text-red-600 border border-red-500/20"
                   }`}
                 >
                   {company.verificationStatus}
@@ -262,7 +262,7 @@ const ManageCompanies: React.FC = () => {
               {/* Actions */}
               <div className="flex gap-3">
                 <button
-                  className="flex-1 border border-black/10 rounded-md py-2 flex items-center justify-center gap-1 bg-gray-50 text-sm hover:cursor-pointer hover:bg-gray-100"
+                  className="flex-1 border border-black/10 rounded-sm py-2 flex items-center justify-center gap-1 bg-gray-50 text-sm hover:cursor-pointer hover:bg-gray-100"
                   onClick={() => setSelectedCompany(company)}
                 >
                   <TbBuildingSkyscraper className="h-5 w-5" />

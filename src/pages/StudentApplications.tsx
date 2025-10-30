@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import type { Application } from "../types/application.types";
 
-const tab = [
+const tabs = [
   { label: "All", status: "All" },
   { label: "Pending", status: "PENDING" },
   { label: "Shortlisted", status: "SHORTLISTED" },
@@ -17,13 +17,7 @@ const tab = [
 const StudentApplications: React.FC = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
-  const [initialApplications, setInitialApplications] = useState<Application[]>(
-    []
-  );
-  const [totalPendingApp, setTotalPendingApp] = useState<number>(0);
-  const [totalRejectedApp, setTotalRejectedApp] = useState<number>(0);
-  const [totalSelectedApp, setTotalSelectedApp] = useState<number>(0);
-  const [totalShortlistedApp, setTotalShortlistedApp] = useState<number>(0);
+  const [filteredApps, setFilteredApps] = useState<Application[]>([]);
   const [currTab, setCurrTab] = useState<
     "All" | "Pending" | "Rejected" | "Shortlisted" | "Selected"
   >("All");
@@ -38,6 +32,7 @@ const StudentApplications: React.FC = () => {
     SELECTED: "text-blue-600 bg-blue-50 border-blue-200",
   };
 
+  // --- Fetch Applications ---
   const fetchApplications = async () => {
     setIsLoading(true);
     try {
@@ -49,37 +44,14 @@ const StudentApplications: React.FC = () => {
           },
         }
       );
-      console.log("response.data", response.data);
 
-      console.log("response.data.data", response.data.data);
-      setInitialApplications(response.data.data);
-      setApplications(response.data.data);
-
-      let pendingApp = 0;
-      let rejectApp = 0;
-      let selectedApp = 0;
-      let shortlistedApp = 0;
-
-      initialApplications.map((app) => {
-        if (app.status === "PENDING") {
-          pendingApp++;
-        } else if (app.status === "SELECTED") {
-          selectedApp++;
-        } else if (app.status === "REJECTED") {
-          rejectApp++;
-        } else {
-          shortlistedApp++;
-        }
-      });
-
-      setTotalPendingApp(pendingApp);
-      setTotalRejectedApp(rejectApp);
-      setTotalSelectedApp(selectedApp);
-      setTotalShortlistedApp(shortlistedApp);
+      const apps = response.data.data;
+      setApplications(apps);
+      setFilteredApps(apps);
     } catch (err) {
-      toast.error("Error in fetching student applications");
+      toast.error("Error fetching student applications");
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   };
 
@@ -87,54 +59,37 @@ const StudentApplications: React.FC = () => {
     fetchApplications();
   }, []);
 
-  if (StudentApplications.length === 0) {
+  // --- Filter by Tab ---
+  useEffect(() => {
+    if (currTab === "All") {
+      setFilteredApps(applications);
+    } else {
+      setFilteredApps(
+        applications.filter((a) => a.status === currTab.toUpperCase())
+      );
+    }
+  }, [currTab, applications]);
+
+  // --- Stats ---
+  const totalStats = {
+    total: applications.length,
+    pending: applications.filter((a) => a.status === "PENDING").length,
+    shortlisted: applications.filter((a) => a.status === "SHORTLISTED").length,
+    rejected: applications.filter((a) => a.status === "REJECTED").length,
+    selected: applications.filter((a) => a.status === "SELECTED").length,
+  };
+
+  // --- Empty State ---
+  if (!isLoading && applications.length === 0) {
     return (
       <div className="flex min-h-screen bg-gray-50">
         <SideBar />
-
         <main className="flex-1 pl-72 p-8">
-          {/* Header */}
           <h1 className="text-2xl font-bold mb-1">My Applications</h1>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 mb-8">
             Track the status of your job applications
           </p>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <StatCard title="Total Applications" count={applications.length} />
-            <StatCard title="Pending" count={totalPendingApp} />
-            <StatCard title="Shortlisted" count={totalShortlistedApp} />
-            <StatCard title="Rejected" count={totalRejectedApp} />
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="p-4 mb-6 shadow-xs">
-            <h3 className="font-semibold mb-3">Application Status</h3>
-            <div className="flex gap-4 py-2 rounded-md text-sm bg-gray-50 justify-center items-center">
-              {tab.map(({ label, status }) => (
-                <button
-                  key={status}
-                  onClick={() => setCurrTab(label as typeof currTab)}
-                  className={`px-3 py-1 relative transition-colors
-          ${
-            currTab === label
-              ? "text-blue-600 font-medium after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600"
-              : "text-gray-600 hover:text-black"
-          }`}
-                >
-                  {label} (
-                  {status === "All"
-                    ? applications.length
-                    : applications.filter((a) => a.status === status).length}
-                  )
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-center relative top-[10%]">
-            <h1>No application is found</h1>
-          </div>
+          <EmptyState />
         </main>
       </div>
     );
@@ -143,47 +98,42 @@ const StudentApplications: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <SideBar />
-
       <main className="flex-1 pl-72 p-8">
-        {/* Header */}
+        {/* --- Header --- */}
         <h1 className="text-2xl font-bold mb-1">My Applications</h1>
         <p className="text-gray-500 mb-6">
           Track the status of your job applications
         </p>
 
-        {/* Stats */}
+        {/* --- Stats --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard title="Total Applications" count={applications.length} />
           <StatCard
-            title="Pending"
-            count={applications.filter((a) => a.status === "PENDING").length}
+            title="Total Applications"
+            count={totalStats.total}
+            color="gray"
           />
+          <StatCard title="Pending" count={totalStats.pending} color="yellow" />
           <StatCard
             title="Shortlisted"
-            count={
-              applications.filter((a) => a.status === "SHORTLISTED").length
-            }
+            count={totalStats.shortlisted}
+            color="green"
           />
-          <StatCard
-            title="Rejected"
-            count={applications.filter((a) => a.status === "REJECTED").length}
-          />
+          <StatCard title="Rejected" count={totalStats.rejected} color="red" />
         </div>
 
-        {/* Filter Tabs */}
+        {/* --- Tabs --- */}
         <div className="bg-white border border-black/10 rounded-md p-4 mb-6 shadow-xs">
           <h3 className="font-semibold mb-3">Application Status</h3>
-          <div className="flex gap-4 py-2 rounded-md text-sm bg-gray-50 justify-center items-center">
-            {tab.map(({ label, status }) => (
+          <div className="flex gap-4 py-2 rounded-md text-sm bg-gray-50 justify-center items-center flex-wrap">
+            {tabs.map(({ label, status }) => (
               <button
                 key={status}
                 onClick={() => setCurrTab(label as typeof currTab)}
-                className={`px-3 py-1 relative transition-colors
-          ${
-            currTab === label
-              ? "text-blue-600 font-medium after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600"
-              : "text-gray-600 hover:text-black"
-          }`}
+                className={`px-3 py-1 relative transition-colors ${
+                  currTab === label
+                    ? "text-blue-600 font-medium after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600"
+                    : "text-gray-600 hover:text-black"
+                }`}
               >
                 {label} (
                 {status === "All"
@@ -195,37 +145,29 @@ const StudentApplications: React.FC = () => {
           </div>
         </div>
 
-        {/* Applications List */}
+        {/* --- Applications List --- */}
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex flex-col items-center">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-3 text-gray-500">Loading jobs...</p>
-            </div>
-          ) : applications.length === 0 ? (
-            <h1 className="text-2xl font-bold text-gray-400">
-              No jobs available
-            </h1>
+            <LoadingSpinner />
+          ) : filteredApps.length === 0 ? (
+            <EmptyState message="No applications found for this status" />
           ) : (
-            applications.map((app) => (
+            filteredApps.map((app) => (
               <div
                 key={app.id}
-                className="bg-white p-6 rounded-md border border-gray-200 shadow-xs"
+                className="bg-white p-6 rounded-md border border-gray-200 shadow-xs hover:shadow-sm transition"
               >
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold text-gray-800">
-                      {app.job.title}
+                      {app.job?.title}
                     </h2>
-                    <p className="text-gray-500">{app.job.company.name}</p>
+                    <p className="text-gray-500">{app.job?.company.name}</p>
                     <div className="flex gap-6 mt-2 text-sm text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1">
-                        <FiMapPin /> {app.job.location}
+                        <FiMapPin /> {app.job?.location}
                       </span>
-                      {/* <span className="flex items-center gap-1">
-                            <FiCalendar /> Applied on {app.}
-                          </span> */}
                     </div>
                   </div>
                   <span
@@ -238,27 +180,17 @@ const StudentApplications: React.FC = () => {
                 </div>
 
                 {/* Description */}
-                <p className="mt-3 text-gray-600 text-sm">
-                  {app.job.description}
+                <p className="mt-3 text-gray-600 text-sm line-clamp-3">
+                  {app.job?.description}
                 </p>
-
-                {/* Tags */}
-                {/* <div className="flex flex-wrap gap-2 mt-4">
-                      {app.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-gray-100 text-gray-700 text-xs px-3 py-1 rounded-sm"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div> */}
 
                 {/* Footer */}
                 <div className="flex justify-end mt-4">
                   <button
                     className="px-4 py-2 border border-black/10 rounded-md text-gray-700 hover:bg-gray-100 flex items-center gap-2 text-sm transition hover:cursor-pointer"
-                    onClick={() => navigate("/student/job")}
+                    onClick={() =>
+                      navigate(`/student/job/${app.job?.id || ""}`)
+                    }
                   >
                     <FiEye /> View Details
                   </button>
@@ -274,29 +206,43 @@ const StudentApplications: React.FC = () => {
 
 export default StudentApplications;
 
-const StatCard = ({ title, count }: { title: string; count: number }) => (
-  <div className="bg-white p-4 rounded-md border border-black/10 shadow-xs">
-    <p className="text-gray-500 text-sm">{title}</p>
-    <p className="text-2xl font-bold">{count}</p>
+const StatCard = ({
+  title,
+  count,
+  color,
+}: {
+  title: string;
+  count: number;
+  color: "gray" | "blue" | "green" | "red" | "yellow";
+}) => {
+  const colors: Record<string, string> = {
+    gray: "border-gray-200 bg-gray-50 text-gray-700",
+    blue: "border-blue-200 bg-blue-50 text-blue-600",
+    green: "border-green-200 bg-green-50 text-green-600",
+    red: "border-red-200 bg-red-50 text-red-600",
+    yellow: "border-yellow-200 bg-yellow-50 text-yellow-600",
+  };
+  return (
+    <div
+      className={`flex items-center justify-between p-4 shadow-xs border rounded-md ${colors[color]}`}
+    >
+      <p className="text-sm">{title}</p>
+      <p className="text-2xl font-bold">{count}</p>
+    </div>
+  );
+};
+
+const LoadingSpinner = () => (
+  <div className="flex flex-col items-center py-16">
+    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <p className="mt-3 text-gray-500">Loading applications...</p>
   </div>
 );
 
-const Tab = ({
-  label,
-  count,
-  active,
-}: {
-  label: string;
-  count: number;
-  active?: boolean;
-}) => (
-  <button
-    className={`pb-2 border-b-2 text-sm font-medium ${
-      active
-        ? "text-blue-600 border-blue-600"
-        : "text-gray-500 border-transparent hover:text-blue-600"
-    }`}
-  >
-    {label} ({count})
-  </button>
+const EmptyState = ({ message }: { message?: string }) => (
+  <div className="flex flex-col items-center justify-center text-center py-20">
+    <h2 className="text-gray-500 text-lg font-medium">
+      {message || "No applications found"}
+    </h2>
+  </div>
 );

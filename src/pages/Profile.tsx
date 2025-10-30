@@ -4,6 +4,7 @@ import SideBar from "../components/SideBar";
 import type { StudentProfile } from "../types/student.types";
 import { toast } from "sonner";
 import axios from "axios";
+import { GoUnverified } from "react-icons/go";
 
 const Profile: React.FC = () => {
   const [formData, setFormData] = useState<StudentProfile>({
@@ -251,10 +252,19 @@ const Profile: React.FC = () => {
             <p className="text-sm text-gray-600 mb-4">
               Your profile verification status
             </p>
-            <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-md text-sm mb-4 border border-green-500/20">
-              <FiCheckCircle className="text-green-500" />
+            {
+              formData.verifiedProfile ? (
+              <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-md text-sm mb-4 border border-green-500/20">
+              <FiCheckCircle className="text-green-500 h-5 w-5" />
               Profile Verified
             </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm mb-4 border border-red-500/20">
+              <GoUnverified className="text-red-500 h-5 w-5" />
+              Profile Not Verified
+            </div>
+            )
+            }
             <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Resume URL
