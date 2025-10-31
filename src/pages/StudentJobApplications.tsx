@@ -93,6 +93,8 @@ export default function StudentJobApplications() {
     Application[]
   >([]);
   const [jobApplications, setJobApplications] = useState<Application[]>([]);
+
+  
   const token = localStorage.getItem("token");
 
   const fetchApplications = async () => {

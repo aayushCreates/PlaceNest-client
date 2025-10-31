@@ -31,7 +31,9 @@ export default function StudentManagement() {
   const [studentVerifyApplications, setStudentVerifyApplications] = useState<
     StudentVerification[]
   >([]);
-  const [selectedStudent, setSelectedStudent] = useState<StudentVerification | null>(null); // ✅ NEW
+  const [selectedStudent, setSelectedStudent] =
+    useState<StudentVerification | null>(null);
+
   const [totalVerifiedStudents, setTotalVerifiedStudents] = useState<number>(0);
   const [totalPendingStudents, setTotalPendingStudents] = useState<number>(0);
   const [totalRejectedStudents, setTotalRejectedStudents] = useState<number>(0);
@@ -107,6 +109,41 @@ export default function StudentManagement() {
       } else {
         toast.error("Error in fetching the student verification application");
       }
+    }
+  };
+
+  const handleVerifyStudent = async (
+    isVerified: boolean,
+    updatedProfileId: string
+  ) => {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_API_URL}/verification/${updatedProfileId}`,
+        {
+          status: isVerified ? "APPROVED" : "REJECTED",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          `Profile ${isVerified ? "approved" : "rejected"} successfully`
+        );
+
+        setStudentVerifyApplications((prev: any) =>
+          prev.map((company: any) =>
+            company.id === updatedProfileId
+              ? { ...company, status: isVerified ? "APPROVED" : "REJECTED" }
+              : company
+          )
+        );
+      }
+    } catch (err) {
+      toast.error("Error in accepting student profile");
     }
   };
 
@@ -192,8 +229,8 @@ export default function StudentManagement() {
                       s.verificationStatus === "APPROVED"
                         ? "bg-blue-50 text-blue-600 border border-blue-600/10"
                         : s.verificationStatus === "PENDING"
-                        ? "bg-gray-50 text-gray-600 border border-black/10"
-                        : "bg-red-50 text-red-600 border border-red-600/10"
+                          ? "bg-gray-50 text-gray-600 border border-black/10"
+                          : "bg-red-50 text-red-600 border border-red-600/10"
                     }`}
                   >
                     {s.verificationStatus}
@@ -229,11 +266,19 @@ export default function StudentManagement() {
                     </button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <button className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                      <button
+                        className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm"
+                        onClick={() => {
+                          handleVerifyStudent(true, s.id);
+                        }}
+                      >
                         <FiCheckCircle className="text-green-500" />
                         <span className="text-green-500">Accept</span>
                       </button>
-                      <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                      <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm"
+                      onClick={()=> {
+                        handleVerifyStudent(false, s.id);
+                      }}>
                         <FiXCircle className="text-red-500" />
                         <span className="text-red-500">Reject</span>
                       </button>
@@ -270,22 +315,21 @@ export default function StudentManagement() {
               <h2 className="text-lg font-semibold text-gray-900">
                 {selectedStudent.name}
               </h2>
-              
+
               <p className="text-sm text-gray-500">{selectedStudent.email}</p>
               <p
                 className={`px-3 py-1 rounded-sm shadow-xs text-xs font-semibold ${
                   selectedStudent.verificationStatus === "APPROVED"
                     ? "bg-blue-100 text-blue-600 border border-blue-500/10"
                     : selectedStudent.verificationStatus === "PENDING"
-                    ? "bg-gray-100 text-gray-600 border border-gray-500/10"
-                    : "bg-red-100 text-red-600 border border-red-500/10"
+                      ? "bg-gray-100 text-gray-600 border border-gray-500/10"
+                      : "bg-red-100 text-red-600 border border-red-500/10"
                 }`}
               >
                 {selectedStudent.verificationStatus}
               </p>
 
               <div className="w-full mt-4 space-y-2 text-sm text-gray-700">
-
                 <p className="flex justify-between  border px-3 py-2 bg-gray-50 rounded-sm border-black/10">
                   <span className="font-medium">Phone:</span>{" "}
                   <span>{selectedStudent.phone}</span>

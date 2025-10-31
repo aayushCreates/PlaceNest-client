@@ -4,7 +4,7 @@ export type JobType = "Internship" | "PartTime" | "FullTime" | "Contract"
 
 export type Role = "STUDENT" | "COORDINATOR" | "COMPANY"
 
-export type Branch = 'CS' | 'CY' | 'IT' | 'ME' | 'ECE' | 'EIC' | 'EE' | 'CE';
+export type Branch = 'CSE' | 'CY' | 'IT' | 'ME' | 'ECE' | 'EIC' | 'EE' | 'CE';
 
 export type JobStatus = "ACTIVE" | "CLOSED" | "DRAFT"
 export interface Job {
@@ -19,6 +19,7 @@ export interface Job {
     deadline: string
     status: JobStatus
     branchCutOff: Branch[]
+    yearCutOff: string[]
 
     companyId?: string
     company?: {

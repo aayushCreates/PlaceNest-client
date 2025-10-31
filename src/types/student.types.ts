@@ -1,7 +1,7 @@
 import type { Role } from "./auth.types";
 
 export type Branch =
-  | ("CS" | "CY" | "IT" | "ME" | "ECE" | "EIC" | "EE" | "CE")
+  | ("CSE" | "CY" | "IT" | "ME" | "ECE" | "EIC" | "EE" | "CE")
   | "";
 
 export type Year = ("FIRST" | "SECOND" | "THIRD" | "FOURTH") | "";

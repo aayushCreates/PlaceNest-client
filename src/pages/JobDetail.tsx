@@ -56,8 +56,6 @@ export default function JobDetails() {
   const [jobLoading, setJobLoading] = useState(true);
 const [applicationLoading, setApplicationLoading] = useState(true);
 
-
-
   const { id } = useParams();
 
   const fetchJobDetail = async () => {
@@ -108,6 +106,7 @@ const [applicationLoading, setApplicationLoading] = useState(true);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_API_URL}/job/${id}/apply`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -117,6 +116,7 @@ const [applicationLoading, setApplicationLoading] = useState(true);
 
       if (response.data.success) {
         setApplicationDetails(response.data.data);
+        toast.success("Job Applied Successfully");
       }
     } catch(err) {
       toast.error("Error in apply job");

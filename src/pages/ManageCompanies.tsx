@@ -17,6 +17,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { IoMdClose } from "react-icons/io";
 import { TbBuildingSkyscraper } from "react-icons/tb";
+import { useAuth } from "../context/AuthContext";
 
 const industries = [
   "All Industries",
@@ -43,6 +44,8 @@ const ManageCompanies: React.FC = () => {
     useState<string>("All Industries");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const token = localStorage.getItem("token");
+
+  const { user } = useAuth();
 
   const stats = [
     {
@@ -131,6 +134,36 @@ const ManageCompanies: React.FC = () => {
       setCompaniesProfiles(totalCompaniesProfiles);
     }
   };
+
+  const handleVerifyCompany = async (isVerified: boolean, updatedProfileId: string)=> {
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_API_URL}/verification/${updatedProfileId}`,
+        {
+          status: isVerified ? "APPROVED" : "REJECTED"
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(`Profile ${isVerified ? "approved" : "rejected"} successfully`);
+      
+        setCompaniesProfiles((prev: any) =>
+          prev.map((company: any) =>
+            company.id === updatedProfileId
+              ? { ...company, status: isVerified ? "APPROVED" : "REJECTED" }
+              : company
+          )
+        );
+      }      
+    } catch (err) {
+      toast.error("Error in accepting company profile");
+    }
+  }
 
   useEffect(() => {
     fetchCompanies();
@@ -268,23 +301,29 @@ const ManageCompanies: React.FC = () => {
                   <TbBuildingSkyscraper className="h-5 w-5" />
                   View Profile
                 </button>
-                {company.verificationStatus === "APPROVED" ? (
+                {/* {company.verificationStatus === "APPROVED" ? (
                   <button className="border border-red-500/10 rounded-sm py-2 px-4 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-sm text-white hover:cursor-pointer">
                     <FiXCircle />
                     Revoke
                   </button>
-                ) : (
+                ) : ( */}
                   <div className="flex items-center gap-2">
-                    <button className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                    <button className="border border-green-500/40 bg-green-300/10 hover:bg-green-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm" 
+                    onClick={()=> {
+                      handleVerifyCompany(true, company.id);
+                    }}>
                       <FiCheckCircle className="text-green-500" />
                       <span className="text-green-500">Accept</span>
                     </button>
-                    <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm">
+                    <button className="border border-red-500/40 bg-red-300/10 hover:bg-red-400/10 hover:cursor-pointer text-white rounded-sm py-2 px-2 flex items-center justify-center gap-2 text-sm" 
+                    onClick={()=> {
+                      handleVerifyCompany(false, company.id);
+                    }}>
                       <FiXCircle className="text-red-500" />
                       <span className="text-red-500">Reject</span>
                     </button>
                   </div>
-                )}
+                {/* )} */}
               </div>
             </div>
           ))}

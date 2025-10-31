@@ -163,7 +163,7 @@ const StudentApplications: React.FC = () => {
                     <h2 className="text-lg font-semibold text-gray-800">
                       {app.job?.title}
                     </h2>
-                    <p className="text-gray-500">{app.job?.company.name}</p>
+                    <p className="text-gray-500">{app.job?.company?.name}</p>
                     <div className="flex gap-6 mt-2 text-sm text-gray-500 flex-wrap">
                       <span className="flex items-center gap-1">
                         <FiMapPin /> {app.job?.location}

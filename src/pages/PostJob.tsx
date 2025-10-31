@@ -1,4 +1,4 @@
-import { FiBriefcase, FiUsers, FiEye, FiSave, FiPlus } from "react-icons/fi";
+import { FiBriefcase, FiUsers, FiEye, FiSave, FiX } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useState } from "react";
 import type { Job, Branch } from "../types/job.types";
@@ -13,7 +13,7 @@ const jobTypes = [
 ] as const;
 
 const branches: { label: string; value: Branch }[] = [
-  { label: "Computer Science", value: "CS" },
+  { label: "Computer Science", value: "CSE" },
   { label: "Chemical", value: "CY" },
   { label: "Information Tech", value: "IT" },
   { label: "Mechanical", value: "ME" },
@@ -34,16 +34,25 @@ export default function PostJob() {
     cgpaCutOff: 0,
     deadline: "",
     status: "DRAFT",
-    branchCutOff: [], 
+    branchCutOff: [],
+    yearCutOff: [],
   });
+
   const token = localStorage.getItem("token");
 
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from({ length: 5 }, (_, i) => currentYear - i); // e.g., [2025, 2024, 2023, 2022, 2021]
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
+    const value =
+      e.target.type === "number" ? Number(e.target.value) : e.target.value;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     }));
   };
 
@@ -54,29 +63,41 @@ export default function PostJob() {
         ? prev.branchCutOff.filter((b) => b !== branch)
         : [...prev.branchCutOff, branch];
 
-      return {
-        ...prev,
-        branchCutOff: updatedBranches,
-      };
+      return { ...prev, branchCutOff: updatedBranches };
     });
   };
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_API_URL}/job`,
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_API_URL}/job`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
-      )
+      );
 
-      if(response.data.success){
+      if (response.data.success) {
         toast.success(response.data.message);
+
+        setFormData({
+          type: "FullTime",
+          title: "",
+          description: "",
+          location: "",
+          position: "",
+          salary: 0,
+          cgpaCutOff: 0,
+          deadline: "",
+          status: "DRAFT",
+          branchCutOff: [],
+          yearCutOff: [],
+        });
       }
-    }catch(err) {
-      toast.error("Error in post job");
+    } catch (err) {
+      toast.error("Error in posting job");
     }
   };
 
@@ -101,7 +122,6 @@ export default function PostJob() {
         </header>
 
         <div className="max-w-6xl mx-auto py-6 grid gap-6">
-          {/* Basic Info */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <section className="lg:col-span-2 border border-black/10 p-6 rounded-md">
               <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
@@ -120,7 +140,6 @@ export default function PostJob() {
                     className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
                   />
                 </div>
-
                 <div>
                   <label className="text-sm block mb-1">Location *</label>
                   <input
@@ -132,7 +151,6 @@ export default function PostJob() {
                     className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
                   />
                 </div>
-
                 <div>
                   <label className="text-sm block mb-1">Job Type *</label>
                   <select
@@ -148,7 +166,6 @@ export default function PostJob() {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="text-sm block mb-1">Position *</label>
                   <input
@@ -160,7 +177,6 @@ export default function PostJob() {
                     className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
                   />
                 </div>
-
                 <div>
                   <label className="text-sm block mb-1">Expected Salary</label>
                   <input
@@ -171,9 +187,10 @@ export default function PostJob() {
                     className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
                   />
                 </div>
-
                 <div>
-                  <label className="text-sm block mb-1">Application Deadline</label>
+                  <label className="text-sm block mb-1">
+                    Application Deadline
+                  </label>
                   <input
                     name="deadline"
                     type="date"
@@ -185,73 +202,105 @@ export default function PostJob() {
               </div>
             </section>
 
-              {/* Branch Eligibility + Year Eligibility*/}
             <div className="flex flex-col gap-3">
-              {/* Eligibility */}
-            <section className="border border-black/10 p-6 rounded-md">
-              <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <FiUsers /> Eligibility Criteria
-              </h3>
+              <section className="border border-black/10 p-6 rounded-md">
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                  <FiUsers /> Eligibility Criteria
+                </h3>
 
-              <div className="mb-4">
-                <p className="text-sm font-medium mb-2">Eligible Branches *</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {branches.map((branch) => (
-                    <label key={branch.value} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.branchCutOff.includes(branch.value)}
-                        onChange={() => handleBranchToggle(branch.value)}
-                      />
-                      {branch.label}
-                    </label>
-                  ))}
+                <div className="mb-4">
+                  <p className="text-sm font-medium mb-2">
+                    Eligible Branches *
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {branches.map((branch) => (
+                      <label
+                        key={branch.value}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.branchCutOff.includes(branch.value)}
+                          onChange={() => handleBranchToggle(branch.value)}
+                        />
+                        {branch.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-sm block mb-1">CGPA Cutoff</label>
-                <input
-                  name="cgpaCutOff"
-                  type="number"
-                  value={formData.cgpaCutOff}
-                  onChange={handleChange}
-                  className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
-                />
-              </div>
+                <div className="mb-4">
+                  <label className="text-sm font-medium mb-2 block">
+                    Eligible Years *
+                  </label>
 
-            {/* Year Cutoff */}
-              <div className="mb-4">
-                <p className="text-sm font-medium mb-2">Eligible Passout Year *</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {branches.map((branch) => (
-                    <label key={branch.value} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.branchCutOff.includes(branch.value)}
-                        onChange={() => handleBranchToggle(branch.value)}
-                      />
-                      {branch.label}
-                    </label>
-                  ))}
+                  {/* Dropdown select for years */}
+                  <select
+                    onChange={(e) => {
+                      const selectedYear = e.target.value;
+                      if (!formData.yearCutOff?.includes(selectedYear)) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          yearCutOff: [
+                            ...(prev.yearCutOff || []),
+                            selectedYear,
+                          ],
+                        }));
+                      }
+                      // reset select to placeholder
+                      e.target.value = "";
+                    }}
+                    className="w-full border border-black/20 px-3 py-2 rounded bg-white"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>
+                      Select Year
+                    </option>
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Display selected years as pills */}
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {formData.yearCutOff?.map((year) => (
+                      <span
+                        key={year}
+                        className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1 text-sm"
+                      >
+                        {year}
+                        <FiX
+                          className="cursor-pointer"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              yearCutOff: prev.yearCutOff?.filter(
+                                (y) => y !== year
+                              ),
+                            }))
+                          }
+                        />
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-sm block mb-1">CGPA Cutoff</label>
-                <input
-                  name="cgpaCutOff"
-                  type="number"
-                  value={formData.cgpaCutOff}
-                  onChange={handleChange}
-                  className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
-                />
-              </div>
-            </section>
+                <div>
+                  <label className="text-sm block mb-1">CGPA Cutoff</label>
+                  <input
+                    name="cgpaCutOff"
+                    type="number"
+                    value={formData.cgpaCutOff}
+                    onChange={handleChange}
+                    className="w-full border border-black/20 px-3 py-2 rounded bg-gray-50"
+                  />
+                </div>
+              </section>
             </div>
           </div>
 
-          {/* Job Description */}
           <section className="border border-black/10 p-6 rounded-md">
             <h3 className="text-lg font-semibold mb-2">Job Description</h3>
             <p className="text-sm text-gray-500 mb-2">
@@ -266,7 +315,6 @@ export default function PostJob() {
             />
           </section>
 
-          {/* Action Buttons */}
           <div className="flex justify-end gap-3 mt-4">
             <button className="px-4 py-2 border border-black/10 rounded text-sm hover:bg-gray-100">
               Cancel
@@ -275,7 +323,7 @@ export default function PostJob() {
               onClick={handleSubmit}
               className="px-4 py-2 bg-blue-600 text-white rounded text-sm flex items-center gap-2 hover:bg-blue-500"
             >
-              <FiPlus /> Publish Job
+              <FiSave /> Publish Job
             </button>
           </div>
         </div>

@@ -58,6 +58,7 @@ const Profile: React.FC = () => {
     const { name, value, type } = e.target;
     let newValue: any = value;
 
+    // instanceof operator checks whether an object is an instance of a given class
     if (type === "checkbox" && e.target instanceof HTMLInputElement) {
       newValue = e.target.checked;
     }

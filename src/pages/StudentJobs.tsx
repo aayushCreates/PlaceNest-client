@@ -13,7 +13,7 @@ const StudentJobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const branchData = ["CS", "CY", "IT", "ME", "ECE", "EIC", "EE", "CE"];
+  const branchData = ["CSE", "CY", "IT", "ME", "ECE", "EIC", "EE", "CE"];
   const jobTypes = ["Internship", "PartTime", "FullTime", "Contract"];
 
   const fetchJobs = async () => {
