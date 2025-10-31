@@ -369,7 +369,8 @@ const ManageCompanies: React.FC = () => {
                     <span className="font-medium flex items-center gap-1">
                       <FiUsers size={14} /> Company Size:
                     </span>
-                    <span>{selectedCompany.length || "N/A"}</span>
+                    <span>{(Array.isArray(selectedCompany) && selectedCompany.length) || "0"
+                    }</span>
                   </div>
 
                   <div className="flex justify-between items-center px-3 py-2 rounded-sm bg-white border border-black/10">

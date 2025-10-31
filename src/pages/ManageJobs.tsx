@@ -9,7 +9,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
-import { act, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Job } from "../types/job.types";
 import { toast } from "sonner";
 import axios from "axios";
@@ -79,7 +79,7 @@ export default function ManageJobs() {
 
       let pendingJobs = 0;
       let activeJobs = 0;
-      jobs.forEach((j) => {
+      jobs.forEach((j: any) => {
         if (j.status === "ACTIVE") activeJobs++;
         else if (j.status === "DRAFT") pendingJobs++;
       });

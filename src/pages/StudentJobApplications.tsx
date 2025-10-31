@@ -1,13 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FiSearch,
   FiUser,
-  FiBriefcase,
-  FiCalendar,
   FiCheckCircle,
   FiXCircle,
   FiChevronDown,
-  FiDownload,
   FiEye,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
@@ -122,14 +119,14 @@ export default function StudentJobApplications() {
     fetchApplications();
   }, []);
 
-  const filtered = MOCK.filter((a) => {
-    if (statusFilter !== "all" && a.status !== statusFilter) return false;
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
-    );
-  });
+  // const filtered = MOCK.filter((a) => {
+  //   if (statusFilter !== "all" && a.status !== statusFilter) return false;
+  //   if (!query) return true;
+  //   const q = query.toLowerCase();
+  //   return (
+  //     a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+  //   );
+  // });
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-700">

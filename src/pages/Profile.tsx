@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { FiUser, FiCheckCircle } from "react-icons/fi";
 import SideBar from "../components/SideBar";
-import type { StudentProfile } from "../types/student.types";
 import { toast } from "sonner";
 import axios from "axios";
 import { GoUnverified } from "react-icons/go";
 
 const Profile: React.FC = () => {
-  const [formData, setFormData] = useState<StudentProfile>({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
@@ -18,6 +17,7 @@ const Profile: React.FC = () => {
     backlogs: 0,
     resumeUrl: "",
     description: "",
+    verifiedProfile: false,
   });
   const [isEditState, setIsEditState] = useState<boolean>(false);
 
@@ -46,27 +46,29 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, []);
 
-  useEffect(()=> {
+  useEffect(() => {
     fetchProfile();
   }, [isEditState]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
-    const { name, value, type, checked } = e.target;
-
+    const { name, value, type } = e.target;
     let newValue: any = value;
-    
-    if (type === "checkbox") {
-      newValue = checked;
+
+    if (type === "checkbox" && e.target instanceof HTMLInputElement) {
+      newValue = e.target.checked;
     }
 
     if (["cgpa", "backlogs"].includes(name)) {
       newValue = value === "" ? "" : parseFloat(value);
     }
+
     setFormData((pre) => ({ ...pre, [name]: newValue }));
   };
-  
+
   const handleEditProfile = async () => {
     try {
       const response = await axios.put(
@@ -115,13 +117,12 @@ const Profile: React.FC = () => {
             </div>
           ) : (
             <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:cursor-pointer"
-            onClick={() => setIsEditState(true)}
-          >
-            Edit Profile
-          </button>
-          )
-        }
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:cursor-pointer"
+              onClick={() => setIsEditState(true)}
+            >
+              Edit Profile
+            </button>
+          )}
         </header>
         <p className="text-gray-600 mb-6">
           Manage your profile information and settings
@@ -217,32 +218,32 @@ const Profile: React.FC = () => {
                 />
               </label>
               <label className="flex items-center text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      checked={formData.activeBacklog}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          activeBacklogs: e.target.checked,
-                        }));
-                      }}
-                      className="mr-2"
-                      disabled={!isEditState}
-                    />
-                    I have active backlogs
-                  </label>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Number of Backlogs
-                  <input
-                    name="backlogs"
-                    value={formData.backlogs}
-                    type="number"
-                    onChange={handleChange}
-                    placeholder="Enter number of backlogs"
-                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none mb-2"
-                    disabled={!isEditState}
-                  />
-                  </label>
+                <input
+                  type="checkbox"
+                  checked={formData.activeBacklog}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      activeBacklogs: e.target.checked,
+                    }));
+                  }}
+                  className="mr-2"
+                  disabled={!isEditState}
+                />
+                I have active backlogs
+              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Number of Backlogs
+                <input
+                  name="backlogs"
+                  value={formData.backlogs}
+                  type="number"
+                  onChange={handleChange}
+                  placeholder="Enter number of backlogs"
+                  className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none mb-2"
+                  disabled={!isEditState}
+                />
+              </label>
             </div>
           </section>
 
@@ -252,33 +253,31 @@ const Profile: React.FC = () => {
             <p className="text-sm text-gray-600 mb-4">
               Your profile verification status
             </p>
-            {
-              formData.verifiedProfile ? (
+            {formData.verifiedProfile ? (
               <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-md text-sm mb-4 border border-green-500/20">
-              <FiCheckCircle className="text-green-500 h-5 w-5" />
-              Profile Verified
-            </div>
+                <FiCheckCircle className="text-green-500 h-5 w-5" />
+                Profile Verified
+              </div>
             ) : (
               <div className="flex items-center gap-2 bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm mb-4 border border-red-500/20">
-              <GoUnverified className="text-red-500 h-5 w-5" />
-              Profile Not Verified
-            </div>
-            )
-            }
+                <GoUnverified className="text-red-500 h-5 w-5" />
+                Profile Not Verified
+              </div>
+            )}
             <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Resume URL
-                  </label>
-                  <input
-                    name="resumeUrl"
-                    value={formData.resumeUrl ?? ""}
-                    onChange={handleChange}
-                    type="text"
-                    disabled={!isEditState}
-                    placeholder="Enter resume URL (e.g., Google Drive link)"
-                    className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Resume URL
+              </label>
+              <input
+                name="resumeUrl"
+                value={formData.resumeUrl ?? ""}
+                onChange={handleChange}
+                type="text"
+                disabled={!isEditState}
+                placeholder="Enter resume URL (e.g., Google Drive link)"
+                className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </section>
         </div>
 

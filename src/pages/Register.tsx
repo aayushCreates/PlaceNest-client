@@ -36,10 +36,14 @@ const Register: React.FC = () => {
   ) => {
     const { name, value, type } = e.target;
 
-    let val: string | number | boolean = value;
+    let val: any = value;
 
     if (type === "number") {
-      val = value === "" ? undefined : Number(value);
+      if(value === "") {
+        val = undefined
+      }else {
+        val = Number(value);
+      }
     }
     if (type === "checkbox") {
       val = (e.target as HTMLInputElement).checked;
@@ -64,7 +68,7 @@ const Register: React.FC = () => {
 
       if (!/^[0-9]{10}$/.test(formData.phone)) {
         toast.error("Please enter a valid 10-digit phone number");
-        return;g
+        return;
       }
 
       register(formData);

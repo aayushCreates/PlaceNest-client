@@ -43,49 +43,7 @@ import axios from "axios";
       labelColor: "text-red-500"
     },
   ];
-  
-  const jobData = [
-    {
-      title: "Software Engineer - Frontend",
-      company: "TechCorp Inc.",
-      status: "Active",
-      location: "Bangalore, India",
-      salary: "₹600,000 - ₹1,200,000",
-      postedDate: "1/15/2024",
-      tags: ["React", "TypeScript", "HTML/CSS", "+1 more"],
-      applications: 0,
-    },
-    {
-      title: "Backend Developer",
-      company: "InnoTech Pvt Ltd.",
-      status: "Active",
-      location: "Pune, India",
-      salary: "₹700,000 - ₹1,500,000",
-      postedDate: "1/12/2024",
-      tags: ["Node.js", "MongoDB", "REST APIs"],
-      applications: 2,
-    },
-    {
-      title: "Data Analyst",
-      company: "DataSolutions",
-      status: "Active",
-      location: "Hyderabad, India",
-      salary: "₹500,000 - ₹1,000,000",
-      postedDate: "1/10/2024",
-      tags: ["Python", "SQL", "Power BI"],
-      applications: 5,
-    },
-    {
-      title: "Full Stack Developer",
-      company: "CodeBase",
-      status: "Active",
-      location: "Remote",
-      salary: "₹800,000 - ₹1,400,000",
-      postedDate: "1/08/2024",
-      tags: ["React", "Express.js", "PostgreSQL"],
-      applications: 3,
-    },
-  ];
+
   
   const JobManagement = () => {
     const [jobs, setJobs] = useState<Job[]>([]);
@@ -174,7 +132,7 @@ import axios from "axios";
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">{job.title}</h2>
-                    <p className="text-gray-500 text-sm">{job.company.name}</p>
+                    <p className="text-gray-500 text-sm">{job.company?.name}</p>
                   </div>
                   <span className="bg-blue-100 text-blue-600 px-3 py-1 text-xs font-medium rounded-sm shadow-xs">
                     {job.status}

@@ -6,7 +6,6 @@ import {
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useEffect, useState } from "react";
-import type { Job } from "../types/job.types";
 import axios from "axios";
 import { toast } from "sonner";
 import type { StudentProfile } from "../types/student.types";
@@ -39,7 +38,6 @@ const getBranchWiseStudents = (students: any, branch: string)=> {
 export default function CoordinatorDashboard() {
   const token = localStorage.getItem("token");
 
-  const [jobs, setJobs] = useState<Job[]>([]);
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [totalActiveJobs, setTotalActiveJobs] = useState<number>(0);
@@ -150,8 +148,6 @@ export default function CoordinatorDashboard() {
         }
       );
       console.log("response.data.data: ", response.data.data);
-
-        setJobs(response.data.data);
 
         let activeJobs = 0;
         response.data.data.map((j: any)=> {

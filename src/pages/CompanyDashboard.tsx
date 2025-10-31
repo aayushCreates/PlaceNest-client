@@ -252,7 +252,7 @@ export default function CompanyDashboard() {
                           {app.student?.email}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          Applied for: {app.job.title}
+                          Applied for: {app.job?.title}
                         </div>
                         <div className="text-gray-500 flex items-center gap-1 text-xs mt-1">
                           <FiCalendar /> {app.createdAt}
