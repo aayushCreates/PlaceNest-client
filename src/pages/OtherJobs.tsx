@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import type { Job } from "../types/job.types";
+import { useAuth } from "../context/AuthContext";
 
 const OtherJobs = () => {
   const navigate = useNavigate();
@@ -37,6 +38,8 @@ const OtherJobs = () => {
 
   const branchData = ["CS", "CY", "IT", "ME", "ECE", "EIC", "EE", "CE"];
   const jobTypes = ["Internship", "PartTime", "FullTime", "Contract"];
+
+  const{ user } = useAuth();
 
   const fetchJobs = async () => {
     setIsLoading(true);
@@ -69,9 +72,11 @@ const OtherJobs = () => {
     if (input === "") {
       setJobs(initialJobData);
     } else {
-      setJobs(initialJobData.filter((job) =>
-        job.title?.toLowerCase().includes(input.toLowerCase())
-      ));
+      setJobs(
+        initialJobData.filter((job) =>
+          job.title?.toLowerCase().includes(input.toLowerCase())
+        )
+      );
     }
   };
 
@@ -84,19 +89,18 @@ const OtherJobs = () => {
     }
   };
 
-
   const handleUploadImage = async (uploadData: any) => {
     if (!uploadData.image) return toast.error("Please select an image first.");
 
     try {
       setUploadProgress(0);
 
-      // const formData = new FormData();
-      // formData.append("image", uploadData.image);
+      const formData = new FormData();
+      formData.append("image", uploadData.image);
 
       const res = await axios.post(
         `${import.meta.env.VITE_OTHERJOBS_API_URL}/upload`,
-        uploadData,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -110,9 +114,9 @@ const OtherJobs = () => {
         }
       );
 
+      setUploadedUrl(res.data.data.url);
       console.log("res after img upload: ", res);
 
-      setUploadedUrl(res.data.data);
       toast.success("Image uploaded successfully!");
     } catch (err: any) {
       console.error(err);
@@ -120,43 +124,71 @@ const OtherJobs = () => {
     }
   };
 
-
-  /** =====================
-     * 🔹 Handle Job Creation
-     ====================== */
-  const handleCreateJob = async () => {
+  const handleScrappedJob = async () => {
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BASE_API_URL}/job`,
-        { ...formData, imageUrl: uploadedUrl },
+      const response = await axios.post(
+        `${import.meta.env.VITE_OTHERJOBS_API_URL}/job/scrapped/data`,
+        { ...formData, image: uploadedUrl },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      toast.success("✅ Job created successfully!");
-      setOpenModal(false);
-      setStep(1);
-      setFormData({
-        name: "",
-        branch: "",
-        image: null,
-        companyName: "",
-        jobUrl: "",
-        companyWebsite: "",
-      });
-      setUploadedUrl("");
-      setUploadProgress(0);
-      // Refetch jobs after creating a new one
-      fetchJobs();
+      console.log("response: ", response);
+      if (response.data.success) {
+        toast.success("✅ Job created successfully!");
+        setOpenModal(false);
+        setStep(1);
+        setFormData({
+          name: "",
+          branch: "",
+          image: null,
+          companyName: "",
+          jobUrl: "",
+          companyWebsite: "",
+        });
+        setUploadedUrl("");
+        setUploadProgress(0);
+        // Refetch jobs after creating a new one
+        fetchJobs();
+      }
+    } catch (err) {
+      toast.error("Error creating job");
+    }
+  };
+  const handleCreateJob = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_OTHERJOBS_API_URL}/job/scrapped/data`,
+        { ...formData, image: uploadedUrl },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log("response: ", response);
+      if (response.data.success) {
+        toast.success("✅ Job created successfully!");
+        setOpenModal(false);
+        setStep(1);
+        setFormData({
+          name: "",
+          branch: "",
+          image: null,
+          companyName: "",
+          jobUrl: "",
+          companyWebsite: "",
+        });
+        setUploadedUrl("");
+        setUploadProgress(0);
+        // Refetch jobs after creating a new one
+        fetchJobs();
+      }
     } catch (err) {
       toast.error("Error creating job");
     }
   };
 
-  /** =====================
-     * 🔹 Modal UI
-     ====================== */
   const renderModal = () => (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
@@ -188,10 +220,11 @@ const OtherJobs = () => {
                     handleUploadImage(formData);
                   }}
                   disabled={!formData.image}
-                  className={`px-4 py-2 rounded-md transition hover:cursor-pointer ${formData.image
-                    ? "bg-blue-500/20 text-blue-500 border border-blue-500/20"
-                    : "bg-gray-500/20 text-gray-500 border border-gray-500/20 cursor-not-allowed"
-                    }`}
+                  className={`px-4 py-2 rounded-md transition hover:cursor-pointer ${
+                    formData.image
+                      ? "bg-blue-500/20 text-blue-500 border border-blue-500/20"
+                      : "bg-gray-500/20 text-gray-500 border border-gray-500/20 cursor-not-allowed"
+                  }`}
                 >
                   Upload Image
                 </button>
@@ -270,12 +303,16 @@ const OtherJobs = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setStep(2);
+                  handleScrappedJob();
+                }}
                 disabled={!formData.name || !formData.branch || !uploadedUrl}
-                className={`px-4 py-2 rounded-md transition ${formData.name && formData.branch && uploadedUrl !== ""
-                  ? "bg-blue-600/10 border border-blue-500/10 hover:bg-blue-700 text-blue-500"
-                  : "bg-neutral-500/10 text-neutral-500 border border-neutral-400/10 cursor-not-allowed"
-                  }`}
+                className={`px-4 py-2 rounded-md transition ${
+                  formData.name && formData.branch && uploadedUrl !== ""
+                    ? "bg-blue-600/10 border border-blue-500/10 hover:bg-blue-700 text-blue-500"
+                    : "bg-neutral-500/10 text-neutral-500 border border-neutral-400/10 cursor-not-allowed"
+                }`}
               >
                 Save & Next
               </button>
@@ -362,12 +399,14 @@ const OtherJobs = () => {
               Discover and apply for jobs that match your profile
             </p>
           </div>
-          <button
-            onClick={() => setOpenModal(true)}
-            className="h-fit bg-blue-500 px-4 py-1.5 text-white rounded-sm shadow-xs"
-          >
-            Add Job
-          </button>
+          {user?.role === "COORDINATOR" && (
+            <button
+              onClick={() => setOpenModal(true)}
+              className="h-fit bg-blue-500/10 text-blue-500 border border-blue-500/50 px-4 py-1.5 rounded-sm shadow-xs hover:cursor-pointer hover:bg-blue-500/20"
+            >
+              Scrappe Job via Img
+            </button>
+          )}
         </div>
 
         {/* Filter Bar */}

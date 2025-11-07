@@ -7,6 +7,7 @@ import {
   FiDollarSign,
   FiEye,
   FiUsers,
+  FiX,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useEffect, useState } from "react";
@@ -24,7 +25,11 @@ export default function ManageJobs() {
   const token = localStorage.getItem("token");
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState<boolean>();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [jobApplications, setJobApplications] = useState<any[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
 
   const stats = [
     {
@@ -44,14 +49,6 @@ export default function ManageJobs() {
       contentCss: "text-blue-500",
     },
     {
-      heading: "Total Applications",
-      data: 1,
-      icon: <FiUsers className="h-6 w-6 text-red-500" />,
-      boxCss:
-        "border border-red-500/20 rounded-md bg-red-400/10 p-4 flex items-center gap-4 p-4 flex items-center gap-4",
-      contentCss: "text-red-500",
-    },
-    {
       heading: "Pending Jobs",
       data: totalPendingJobs,
       icon: <FiClock className="h-6 w-6 text-green-500" />,
@@ -69,43 +66,94 @@ export default function ManageJobs() {
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_API_URL}/job/company/${user.id}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       const jobs = response.data.data;
       setCompanyJobs(jobs);
 
-      let pendingJobs = 0;
-      let activeJobs = 0;
+      let pending = 0;
+      let active = 0;
       jobs.forEach((j: any) => {
-        if (j.status === "ACTIVE") activeJobs++;
-        else if (j.status === "DRAFT") pendingJobs++;
+        if (j.status === "ACTIVE") active++;
+        else if (j.status === "DRAFT") pending++;
       });
+      setTotalActiveJobs(active);
+      setTotalPendingJobs(pending);
 
-      setTotalActiveJobs(activeJobs);
-      setTotalPendingJobs(pendingJobs);
-    } catch (err) {
-      toast.error("Error in fetching jobs");
+      console.log(response.data.data);
+
+      let applications: any[] = [];
+
+      response.data.data.map((j: any)=> {
+        j.applications.map((a: any)=> {
+          applications.push(a);
+        })
+      })
+      setJobApplications(applications);
+    } catch {
+      toast.error("Error fetching jobs");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.id) {
-      fetchJobs();
-    }
+    if (user?.id) fetchJobs();
   }, [user?.id]);
-  
+
+  // const fetchApplications = async (jobId: string) => {
+  //   if (!token) return;
+  //   setModalLoading(true);
+  //   try {
+  //     const res = await axios.get(
+  //       `${import.meta.env.VITE_BASE_API_URL}/job/${jobId}/applications`,
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+  //     setJobApplications(res.data.data || []);
+  //   } catch {
+  //     toast.error("Error loading applications");
+  //   } finally {
+  //     setModalLoading(false);
+  //   }
+  // };
+
+  const handleOpenModal = (job: Job) => {
+    setSelectedJob(job);
+    setModalOpen(true);
+    // fetchApplications(job.id as string);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedJob(null);
+    setJobApplications([]);
+  };
+
+  const handleAcceptReject = async (appId: string, status: "ACCEPTED" | "REJECTED") => {
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_BASE_API_URL}/application/${appId}`,
+        { status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Application ${status.toLowerCase()}`);
+      setJobApplications((prev) =>
+        prev.map((a) => (a.id === appId ? { ...a, status } : a))
+      );
+    } catch {
+      toast.error("Error updating status");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <SideBar />
 
       <main className="flex-1 p-8 pl-72">
-        {/* Header */}
         <header className="flex justify-between items-center px-8 py-6">
           <h2 className="text-2xl font-bold">Manage Jobs</h2>
           <button
@@ -118,13 +166,13 @@ export default function ManageJobs() {
 
         <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
           {/* Stats */}
-          <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {stats.map((s) => (
               <div className={`${s.boxCss} flex`} key={s.heading}>
                 {s.icon}
                 <div className="flex gap-3">
                   <span className={`${s.contentCss} text-md font-semibold`}>
-                    {s.heading}{" "}
+                    {s.heading}
                   </span>
                   <span className={`${s.contentCss} font-semibold`}>
                     {s.data}
@@ -132,32 +180,6 @@ export default function ManageJobs() {
                 </div>
               </div>
             ))}
-          </section>
-
-          {/* Filters */}
-          <section className="border border-black/10 p-6 rounded-md space-y-4">
-            <h3 className="font-semibold text-lg">Filter Jobs</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search by title or location..."
-                  className="pl-10 pr-4 py-2 w-full border border-black/20 rounded-md bg-gray-50"
-                />
-              </div>
-              <select className="border border-black/20 px-3 py-2 rounded-md bg-white">
-                <option>All Status</option>
-                <option>Active</option>
-                <option>Expired</option>
-              </select>
-              <select className="border border-black/20 px-3 py-2 rounded-md bg-white">
-                <option>All Types</option>
-                <option>Full Time</option>
-                <option>Part Time</option>
-                <option>Internship</option>
-              </select>
-            </div>
           </section>
 
           {/* Job Cards */}
@@ -168,15 +190,16 @@ export default function ManageJobs() {
 
             {loading ? (
               <div className="flex justify-center items-center py-12">
-                <div className="flex justify-center items-center py-12">
-                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                </div>
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : companyJobs.length === 0 ? (
               <p className="text-gray-500 text-sm">No jobs posted yet.</p>
             ) : (
-              companyJobs.map((j,idx) => (
-                <div className="border border-black/10 p-6 rounded-md space-y-4" key={idx}>
+              companyJobs.map((j, idx) => (
+                <div
+                  className="border border-black/10 p-6 rounded-md space-y-4"
+                  key={idx}
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="text-xl font-semibold">{j.title}</h4>
@@ -189,9 +212,6 @@ export default function ManageJobs() {
                         </span>
                       </div>
                     </div>
-                    {/* <button className="text-gray-500 hover:text-gray-700 text-xl">
-                    ⋯
-                  </button> */}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
@@ -205,39 +225,24 @@ export default function ManageJobs() {
                       <FiDollarSign /> {j.salary}
                     </div>
                     <div className="flex items-center gap-1">
-                      <FiCalendar /> Posted {j.createdAt}
+                      <FiCalendar /> {j.createdAt}
                     </div>
                     <div className="flex items-center gap-1">
                       <FiClock /> Deadline {j.deadline}
                     </div>
-                    {/* <div className="flex items-center gap-1">
-                    <FiUsers /> {} applications
-                  </div> */}
                   </div>
 
                   <p className="text-sm text-gray-600">{j.description}</p>
 
-                  {/* <div className="flex flex-wrap gap-2">
-                  <span className="px-2 py-1 bg-gray-100 text-sm rounded">
-                    React
-                  </span>
-                  <span className="px-2 py-1 bg-gray-100 text-sm rounded">
-                    TypeScript
-                  </span>
-                  <span className="px-2 py-1 bg-gray-100 text-sm rounded">
-                    HTML/CSS
-                  </span>
-                  <span className="px-2 py-1 bg-gray-100 text-sm rounded">
-                    +1 more
-                  </span>
-                </div> */}
-
                   <div className="flex justify-end gap-3">
-                    <button className="flex items-center gap-2 border border-black/10 px-4 py-2 rounded text-sm hover:bg-gray-50 hover:cursor-pointer">
+                    <button className="flex items-center gap-2 border border-black/10 px-4 py-2 rounded text-sm hover:bg-gray-50">
                       <FiEye /> Preview
                     </button>
-                    <button className="flex items-center gap-2 bg-blue-400/10 text-blue-500 border border-blue-500/20 px-4 py-2 rounded text-sm hover:bg-blue-700/10 hover:cursor-pointer">
-                      <FiUsers /> 1 Applicants
+                    <button
+                      onClick={() => handleOpenModal(j)}
+                      className="flex items-center gap-2 bg-blue-400/10 text-blue-500 border border-blue-500/20 px-4 py-2 rounded text-sm hover:bg-blue-700/10"
+                    >
+                      <FiUsers /> View Applications
                     </button>
                   </div>
                 </div>
@@ -246,6 +251,82 @@ export default function ManageJobs() {
           </section>
         </div>
       </main>
+
+      {/* Modal for Applications */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 flex justify-center items-center z-50"
+          onClick={handleCloseModal}
+        >
+          <div
+            className="bg-white w-full max-w-2xl p-6 rounded-md shadow-lg relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <FiX size={20} />
+            </button>
+
+            <h3 className="text-lg font-semibold mb-4">
+              Applications for {selectedJob?.title}
+            </h3>
+
+            {modalLoading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : jobApplications.length === 0 ? (
+              <p className="text-gray-500 text-sm">No applications yet.</p>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {jobApplications.map((a) => (
+                  <div
+                    key={a.id}
+                    className="border border-black/10 p-4 rounded-md flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="font-semibold">{a.applicant?.name}</p>
+                      <p className="text-sm text-gray-500">
+                        {a.applicant?.email}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Status:{" "}
+                        <span className="font-medium text-gray-700">
+                          {a.status}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          navigate(`/company/student/${a.applicant.id}`)
+                        }
+                        className="border border-blue-500 text-blue-500 px-2 py-1 rounded text-xs hover:bg-blue-50"
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => handleAcceptReject(a.id, "ACCEPTED")}
+                        className="border border-green-500 text-green-500 px-2 py-1 rounded text-xs hover:bg-green-50"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleAcceptReject(a.id, "REJECTED")}
+                        className="border border-red-500 text-red-500 px-2 py-1 rounded text-xs hover:bg-red-50"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -21,36 +21,6 @@ type Application = {
   status: "shortlisted" | "pending" | "rejected" | "selected";
 };
 
-const MOCK: Application[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "student@test.com",
-    degree: "Computer Science",
-    appliedOn: "1/16/2024",
-    position: "Software Engineer - Frontend",
-    status: "shortlisted",
-  },
-  {
-    id: "2",
-    name: "John Doe",
-    email: "student@test.com",
-    degree: "Computer Science",
-    appliedOn: "1/21/2024",
-    position: "Unknown Job",
-    status: "pending",
-  },
-  {
-    id: "3",
-    name: "John Doe",
-    email: "student@test.com",
-    degree: "Computer Science",
-    appliedOn: "1/19/2024",
-    position: "Unknown Job",
-    status: "rejected",
-  },
-];
-
 const stats = [
   {
     heading: "Total Applications",
@@ -93,7 +63,9 @@ export default function StudentJobApplications() {
     Application[]
   >([]);
   const [jobApplications, setJobApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const [jobPositions, setJobPositions] = useState<string[]>([]);
   
   const token = localStorage.getItem("token");
 
@@ -110,12 +82,36 @@ export default function StudentJobApplications() {
       if (response.data?.success) {
         setInitialJobApplications(response.data?.data);
         setJobApplications(response.data?.data);
+
         toast.success(response.data?.success);
       }
     } catch (err) {
       toast.error("Error in fetching applications");
     }
   };
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_API_URL}/job/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (Array.isArray(response.data.data)) {
+        
+      }
+    } catch (err) {
+      toast.error("Error in fetching jobs");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     fetchApplications();

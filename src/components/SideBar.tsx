@@ -10,7 +10,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { IconType } from "react-icons";
 import { IoMdAddCircleOutline } from "react-icons/io";
-import { TbUsers } from "react-icons/tb";
 import { RiPassValidLine } from "react-icons/ri";
 import { FaRegBuilding } from "react-icons/fa";
 
@@ -35,7 +34,7 @@ const companySidebarItems: SideBarType[] = [
   { label: "Profile", icon: FiUser, tab: "profile", route: "/profile" },
   { label: "Post Jobs", icon: IoMdAddCircleOutline, tab: "post-jobs", route: "/company/post-job" },
   { label: "My Jobs", icon: FiBriefcase, tab: "manage-jobs", route: "/company/manage-jobs" },
-  { label: "Applicants", icon: TbUsers, tab: "applicants", route: "/company/students-applications" },
+  // { label: "Applicants", icon: TbUsers, tab: "applicants", route: "/company/students-applications" },
 ];
 
 const coordinatorSidebarItems: SideBarType[] = [
