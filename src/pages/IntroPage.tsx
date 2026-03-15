@@ -58,7 +58,7 @@ const announcements = [
 ];
 
 const recruiters = [
-  "Google", "Amazon", "Microsoft", "TCS", "Infosys", "Wipro", "Accenture", "Deloitte"
+  "Cyntexa", "Metacube", "Adani", "L&T", "JK Cement", "Jaro Education"
 ];
 
 export default function IntroPage() {
@@ -123,7 +123,7 @@ export default function IntroPage() {
             The intelligent hub for all your training and placement activities. 
             Bridging the gap between our talented students and global recruiters.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+          {/* <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
             <button 
               onClick={() => navigate('/register')}
               className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all transform hover:-translate-y-1 cursor-pointer flex items-center justify-center"
@@ -133,7 +133,7 @@ export default function IntroPage() {
             <button className="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all cursor-pointer flex items-center justify-center">
               <FiCalendar className="mr-2" /> View Drive Schedule
             </button>
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -280,55 +280,6 @@ export default function IntroPage() {
                     <p className="text-gray-400 leading-relaxed text-sm">Deep insights for the college placement office to track performance and identify training needs.</p>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="aspect-[4/3] bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] shadow-2xl overflow-hidden group p-1 border-8 border-white/5">
-                <div className="bg-slate-900/50 absolute inset-0 group-hover:bg-slate-900/0 transition-all"></div>
-                <div className="flex flex-col items-center justify-center h-full p-8 text-center relative z-10">
-                   <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-6 animate-pulse">
-                      <FaRobot className="text-4xl text-blue-400" />
-                   </div>
-                   <h3 className="text-2xl font-bold mb-4">Official College AI Portal</h3>
-                   <p className="text-blue-100 text-sm">Empowering students with GPT-4 powered resume assistance and automated profile verification workflows.</p>
-                   <div className="mt-8 grid grid-cols-2 gap-4 w-full">
-                      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-[10px] uppercase font-bold tracking-wider">Verification: Auto</div>
-                      <div className="bg-white/5 p-3 rounded-xl border border-white/10 text-[10px] uppercase font-bold tracking-wider">Matching: AI-Driven</div>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-blue-600 rounded-[3rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-blue-200">
-            <div className="absolute top-0 left-0 w-full h-full -z-0">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-               <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-900/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
-            </div>
-            
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-6xl font-bold mb-8 tracking-tight">Ready to Launch Your Career?</h2>
-              <p className="text-blue-100 text-xl max-w-2xl mx-auto mb-12">
-                Join our college's official placement platform and get exclusive access to campus drives and AI career tools.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button 
-                  onClick={() => navigate('/register')}
-                  className="px-10 py-5 bg-white text-blue-600 rounded-2xl font-extrabold text-xl hover:bg-blue-50 transition-all shadow-xl shadow-blue-700/20 cursor-pointer flex items-center justify-center"
-                >
-                  Join the Portal <FiArrowRight className="ml-2" />
-                </button>
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="px-10 py-5 bg-blue-700 text-white rounded-2xl font-extrabold text-xl hover:bg-blue-800 transition-all border border-blue-500 cursor-pointer"
-                >
-                  Student Login
-                </button>
               </div>
             </div>
           </div>
