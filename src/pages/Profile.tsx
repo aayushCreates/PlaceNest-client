@@ -2,16 +2,9 @@ import React, { useEffect, useState } from "react";
 import { 
   FiUser, 
   FiCheckCircle, 
-  FiMail, 
-  FiPhone, 
-  FiMapPin, 
-  FiLinkedin, 
-  FiGlobe, 
   FiBriefcase, 
-  FiCalendar, 
   FiBookOpen, 
   FiAward, 
-  FiAlertCircle, 
   FiFileText,
   FiEdit3,
   FiSave,
@@ -421,28 +414,6 @@ const Profile: React.FC = () => {
                   </div>
                 )}
               </div>
-            </section>
-
-            {/* Account Security Card */}
-            <section className="bg-slate-900 rounded-3xl lg:rounded-[2.5rem] p-6 md:p-8 text-white relative overflow-hidden shadow-xl shadow-slate-200">
-               <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
-               <h3 className="text-base md:text-lg font-bold mb-6 flex items-center gap-2 relative z-10">
-                  <FiAward className="text-blue-400" /> Account Security
-               </h3>
-               <div className="space-y-4 relative z-10">
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                     <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                        <FiCheckCircle />
-                     </div>
-                     <div className="text-left overflow-hidden">
-                        <p className="text-xs font-bold truncate">Two-Factor Auth</p>
-                        <p className="text-[9px] md:text-[10px] text-slate-400 font-medium truncate">Standard protection enabled</p>
-                     </div>
-                  </div>
-                  <p className="text-[9px] md:text-[10px] text-slate-400 text-center font-medium mt-6">
-                    Last profile update: {new Date().toLocaleDateString()}
-                  </p>
-               </div>
             </section>
           </div>
         </div>
