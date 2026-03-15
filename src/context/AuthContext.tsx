@@ -16,7 +16,9 @@ import { jwtDecode } from "jwt-decode";
 
 type AuthContextTypes = {
   user: any;
+  setUser: React.Dispatch<React.SetStateAction<any>>;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (loginDetails: LoginFormType) => void;
   register: (registerDetails: RegisterFormType) => void;
   logout: () => void;
@@ -30,6 +32,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async (authToken: string) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_API_URL}/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setUser(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      // If profile fetch fails (e.g. invalid token), we might want to logout
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        logout();
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
@@ -41,12 +69,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
         localStorage.removeItem("token");
         localStorage.removeItem("auth");
+        setLoading(false);
       } else {
         setIsAuthenticated(true);
         setToken(savedToken);
-        const savedAuth = localStorage.getItem("auth");
-        if (savedAuth) setUser(JSON.parse(savedAuth));
+        // Fetch full profile from backend on app load
+        fetchProfile(savedToken);
       }
+    } else {
+      setLoading(false);
     }
   }, []);
 
@@ -57,20 +88,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loginFormData
       );
 
-      console.log("response.data.data: ", response.data.data);
-
       if (response.data.success) {
-        setUser(response.data.data);
         setToken(response.data.token);
         setIsAuthenticated(true);
-
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({...response.data.data})
-        );
-        toast.success(response.data.message);
         
+        // After login, fetch the full profile to populate context
+        await fetchProfile(response.data.token);
+        
+        toast.success(response.data.message);
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -94,15 +120,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
       if (response.data.success) {
-        setUser(response.data.data);
         setToken(response.data.token);
         setIsAuthenticated(true);
-
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({...response.data.data})
-        );
+
+        // Fetch full profile after registration
+        await fetchProfile(response.data.token);
+        
         toast.success(response.data.message);
       }
     } catch (err) {
@@ -138,6 +162,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         isAuthenticated,
         user,
+        setUser,
+        loading
       }}
     >
       {children}
