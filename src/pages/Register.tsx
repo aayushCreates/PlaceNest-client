@@ -5,7 +5,6 @@ import {
   FaUserShield,
   FaEnvelope,
   FaLock,
-  FaInfoCircle,
   FaPhoneAlt,
   FaUserAlt,
   FaGlobe,
@@ -15,7 +14,7 @@ import {
 import { toast } from "sonner";
 import type { RegisterFormType, Role } from "../types/auth.types";
 import { useAuth } from "../context/AuthContext";
-import { FiArrowLeft, FiArrowRight, FiCheck } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiBriefcase, FiCheck } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const Register: React.FC = () => {
