@@ -50,6 +50,7 @@ export default function StudentManagement() {
   const [totalPendingStudents, setTotalPendingStudents] = useState<number>(0);
   const [totalRejectedStudents, setTotalRejectedStudents] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const token = localStorage.getItem("token");
 
   const fetchStudentVerficationApplication = async () => {
@@ -80,6 +81,7 @@ export default function StudentManagement() {
   };
 
   const handleVerifyStudent = async (isVerified: boolean, updatedProfileId: string) => {
+    setVerifyingId(updatedProfileId);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_API_URL}/verification/${updatedProfileId}`,
@@ -97,6 +99,8 @@ export default function StudentManagement() {
       }
     } catch (err) {
       toast.error("Error updating student verification status");
+    } finally {
+      setVerifyingId(null);
     }
   };
 
@@ -255,21 +259,35 @@ export default function StudentManagement() {
                   {s.verificationStatus === "APPROVED" ? (
                     <button 
                       onClick={() => handleVerifyStudent(false, s.id)}
-                      className="px-4 py-3 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center"
+                      disabled={verifyingId === s.id}
+                      className="px-4 py-3 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      Revoke
+                      {verifyingId === s.id ? (
+                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        "Revoke"
+                      )}
                     </button>
                   ) : (
                     <div className="flex gap-2 flex-1">
                       <button
                         onClick={() => handleVerifyStudent(true, s.id)}
-                        className="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all cursor-pointer"
+                        disabled={verifyingId === s.id}
+                        className="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-emerald-600 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                       >
-                        Approve
+                        {verifyingId === s.id ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Verifying...
+                          </>
+                        ) : (
+                          "Approve"
+                        )}
                       </button>
                       <button
                         onClick={() => handleVerifyStudent(false, s.id)}
-                        className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all cursor-pointer"
+                        disabled={verifyingId === s.id}
+                        className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-all cursor-pointer disabled:opacity-50"
                       >
                         <FiXCircle />
                       </button>
@@ -289,7 +307,7 @@ export default function StudentManagement() {
           onClick={() => setSelectedStudent(null)}
         >
           <div
-            className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative"
+            className="bg-white w-full max-w-md max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -299,58 +317,62 @@ export default function StudentManagement() {
               <FiX size={20} />
             </button>
 
-            <div className="p-8 lg:p-10 flex flex-col items-center text-center">
-              <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
-                <FiUser className="text-4xl text-blue-600" />
-              </div>
+            <div className="overflow-y-auto no-scrollbar">
+              <div className="p-8 lg:p-10 flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner shrink-0">
+                  <FiUser className="text-4xl text-blue-600" />
+                </div>
 
-              <h2 className="text-2xl font-black text-slate-900 leading-tight">{selectedStudent.name}</h2>
-              <p className="text-slate-500 font-medium mt-1 mb-4">{selectedStudent.email}</p>
-              
-              <Badge variant={selectedStudent.verificationStatus === 'APPROVED' ? 'green' : selectedStudent.verificationStatus === 'PENDING' ? 'amber' : 'rose'}>
-                {selectedStudent.verificationStatus}
-              </Badge>
+                <h2 className="text-2xl font-black text-slate-900 leading-tight break-words w-full">{selectedStudent.name}</h2>
+                <p className="text-slate-500 font-medium mt-1 mb-4 break-words w-full">{selectedStudent.email}</p>
+                
+                <Badge variant={selectedStudent.verificationStatus === 'APPROVED' ? 'green' : selectedStudent.verificationStatus === 'PENDING' ? 'amber' : 'rose'}>
+                  {selectedStudent.verificationStatus}
+                </Badge>
 
-              <div className="w-full mt-8 space-y-3">
-                {[
-                  { label: "Phone", val: selectedStudent.phone, icon: <FiPhone /> },
-                  { label: "Branch", val: selectedStudent.branch, icon: <FiBookOpen /> },
-                  { label: "Batch", val: `${selectedStudent.year} YEAR`, icon: <FiCalendar /> },
-                  { label: "CGPA", val: selectedStudent.cgpa || "N/A", icon: <FiActivity /> },
-                  { label: "Backlogs", val: selectedStudent.backlogs ?? "N/A", icon: <FiAlertCircle /> },
-                  { label: "Backlog Status", val: selectedStudent.activeBacklog ? "Active" : "None", icon: <FiAlertCircle /> },
-                  { label: "Student ID", val: selectedStudent.id.slice(-8), icon: <FiInfo /> }
-                ].map((item, i) => (
-                  <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      <span className="text-blue-500">{item.icon}</span> {item.label}
-                    </span>
-                    <span className="text-sm font-black text-slate-900">{item.val}</span>
-                  </div>
-                ))}
-              </div>
+                <div className="w-full mt-8 space-y-3">
+                  {[
+                    { label: "Phone", val: selectedStudent.phone, icon: <FiPhone /> },
+                    { label: "Branch", val: selectedStudent.branch, icon: <FiBookOpen /> },
+                    { label: "Batch", val: `${selectedStudent.year} YEAR`, icon: <FiCalendar /> },
+                    { label: "CGPA", val: selectedStudent.cgpa || "N/A", icon: <FiActivity /> },
+                    { label: "Backlogs", val: selectedStudent.backlogs ?? "N/A", icon: <FiAlertCircle /> },
+                    { label: "Backlog Status", val: selectedStudent.activeBacklog ? "Active" : "None", icon: <FiAlertCircle /> },
+                    { label: "Student ID", val: selectedStudent.id.slice(-8), icon: <FiInfo /> }
+                  ].map((item, i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 gap-2 sm:gap-4">
+                      <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                        <span className="text-blue-500">{item.icon}</span> {item.label}
+                      </span>
+                      <span className="text-sm font-black text-slate-900 truncate text-left sm:text-right w-full sm:max-w-[200px]">
+                        {item.val}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="w-full grid grid-cols-2 gap-3 mt-4">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                  <button
+                    onClick={() => selectedStudent.linkedinUrl ? window.open(selectedStudent.linkedinUrl, "_blank") : toast.error("LinkedIn URL not provided")}
+                    className="flex items-center justify-center gap-2 py-3.5 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-100 transition-all cursor-pointer"
+                  >
+                    <FiLinkedin /> LinkedIn
+                  </button>
+                  <button
+                    onClick={() => selectedStudent.resumeUrl ? window.open(selectedStudent.resumeUrl, "_blank") : toast.error("Resume not provided")}
+                    className="flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
+                  >
+                    <FiFileText /> View Resume
+                  </button>
+                </div>
+                
                 <button
-                  onClick={() => selectedStudent.linkedinUrl ? window.open(selectedStudent.linkedinUrl, "_blank") : toast.error("LinkedIn URL not provided")}
-                  className="flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-100 transition-all cursor-pointer"
+                  onClick={() => setSelectedStudent(null)}
+                  className="w-full mt-6 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all"
                 >
-                  <FiLinkedin /> LinkedIn
-                </button>
-                <button
-                  onClick={() => selectedStudent.resumeUrl ? window.open(selectedStudent.resumeUrl, "_blank") : toast.error("Resume not provided")}
-                  className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
-                >
-                  <FiFileText /> View Resume
+                  Close Profile
                 </button>
               </div>
-              
-              <button
-                onClick={() => setSelectedStudent(null)}
-                className="w-full mt-6 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all"
-              >
-                Close Profile
-              </button>
             </div>
           </div>
         </div>
