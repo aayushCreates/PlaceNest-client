@@ -21,6 +21,7 @@ const Register: React.FC = () => {
   const [role, setRole] = useState<Role>("STUDENT");
   const [currStep, setCurrStep] = useState<number>(1);
   const [hasBacklogs, setHasBacklogs] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const { register } = useAuth();
@@ -80,11 +81,14 @@ const Register: React.FC = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      register(formData);
+      await register(formData);
     } catch (err) {
       console.error("Registration error:", err);
       toast.error("Error in registration");
+    } finally {
+      setIsLoading(false);
     }
   };
 
