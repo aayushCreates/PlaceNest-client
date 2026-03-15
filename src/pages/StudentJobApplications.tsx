@@ -59,13 +59,7 @@ const stats = [
 export default function StudentJobApplications() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [initialJobApplications, setInitialJobApplications] = useState<
-    Application[]
-  >([]);
   const [jobApplications, setJobApplications] = useState<Application[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const [jobPositions, setJobPositions] = useState<string[]>([]);
   
   const token = localStorage.getItem("token");
 
@@ -80,35 +74,12 @@ export default function StudentJobApplications() {
         }
       );
       if (response.data?.success) {
-        setInitialJobApplications(response.data?.data);
         setJobApplications(response.data?.data);
 
         toast.success(response.data?.success);
       }
     } catch (err) {
       toast.error("Error in fetching applications");
-    }
-  };
-
-  const fetchJobs = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_API_URL}/job/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (Array.isArray(response.data.data)) {
-        
-      }
-    } catch (err) {
-      toast.error("Error in fetching jobs");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -306,19 +277,6 @@ export default function StudentJobApplications() {
           </section>
         </main>
       </div>
-    </div>
-  );
-}
-
-function SidebarItem({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <div
-      className={`flex items-center gap-3 px-3 py-2 rounded-md ${
-        active ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      <FiUser />
-      <span className="text-sm">{label}</span>
     </div>
   );
 }
