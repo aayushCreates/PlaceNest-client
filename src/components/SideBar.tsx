@@ -4,6 +4,8 @@ import {
   FiBriefcase,
   FiFileText,
   FiMessageSquare,
+  FiLinkedin,
+  FiChevronRight
 } from "react-icons/fi";
 import { MdDashboard, MdLogout } from "react-icons/md";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -34,19 +36,16 @@ const companySidebarItems: SideBarType[] = [
   { label: "Profile", icon: FiUser, tab: "profile", route: "/profile" },
   { label: "Post Jobs", icon: IoMdAddCircleOutline, tab: "post-jobs", route: "/company/post-job" },
   { label: "My Jobs", icon: FiBriefcase, tab: "manage-jobs", route: "/company/manage-jobs" },
-  // { label: "Applicants", icon: TbUsers, tab: "applicants", route: "/company/students-applications" },
 ];
 
 const coordinatorSidebarItems: SideBarType[] = [
   { label: "Dashboard", icon: MdDashboard, tab: "dashboard", route: "/coordinator/dashboard" },
   { label: "Profile", icon: FiUser, tab: "profile", route: "/profile" },
   { label: "Students Verification", icon: RiPassValidLine, tab: "verify-students", route: "/coordinator/manage-students" },
-  // { label: "Job Approvals", icon: GrValidate, tab: "job-approvals", route: "/coordinator/manage-jobs" },
   { label: "Companies Verifications", icon: FaRegBuilding, tab: "companies", route: "/coordinator/manage-companies" },
-  // { label: "Company Jobs", icon: FiBriefcase, tab: "company-jobs", route: "/other-jobs" },,
-  { label: "JobBoard Jobs", icon: FiBriefcase, tab: "other-jobs", route: "/other-jobs" } 
+  { label: "JobBoard Jobs", icon: FiBriefcase, tab: "other-jobs", route: "/other-jobs" },
+  { label: "Linkedin Posts", icon: FiLinkedin, tab: "linkedin-posts", route: "/linkedin-posts" }
 ];
-
 
 const SideBar = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
@@ -54,75 +53,101 @@ const SideBar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  const roleLabel = useMemo(() => {
+    if (user?.role === "STUDENT") return "Student Portal";
+    if (user?.role === "COMPANY") return "Recruiter Portal";
+    if (user?.role === "COORDINATOR") return "TPO Portal";
+    return "Portal";
+  }, [user?.role]);
+
   const sidebarItems = useMemo(() => {
-    if (user?.role === "STUDENT") {
-      return studentSidebarItems;
-    } else if (user?.role === "COMPANY") {
-      return companySidebarItems;
-    } else if (user?.role === "COORDINATOR") {
-      return coordinatorSidebarItems;
-    }
+    if (user?.role === "STUDENT") return studentSidebarItems;
+    if (user?.role === "COMPANY") return companySidebarItems;
+    if (user?.role === "COORDINATOR") return coordinatorSidebarItems;
     return [];
   }, [user?.role]);
 
-  // sync active tab with current path
   useEffect(() => {
     if (!user?.role) return;
-  
     const currItem = sidebarItems.find((item) =>
       location.pathname.startsWith(item.route)
     );
     if (currItem) setActiveTab(currItem.tab);
   }, [location.pathname, sidebarItems, user?.role]);
-  
 
   return (
-    <aside className="w-64 bg-white shadow-md p-6 h-screen fixed top-0 left-0 flex flex-col justify-between">
-  {/* Header */}
-  <div>
-    <h2 className="text-lg font-bold mb-6">{`${user?.role} Dashboard`}</h2>
-    <p className="text-sm text-gray-500 mb-6">{`Welcome back, ${user?.name}`}</p>
+    <aside className="w-64 bg-white border-r border-slate-100 h-screen fixed top-0 left-0 flex flex-col z-40 shadow-sm">
+      {/* Branding Section */}
+      <div className="p-8 pb-10">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+            <span className="text-white font-black text-xl">P</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            Place<span className="text-blue-600">Nest</span>
+          </h1>
+        </div>
+        <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-100">
+          {roleLabel}
+        </div>
+      </div>
 
-    {/* Navigation */}
-    <nav className="space-y-2">
-      {sidebarItems.map(({ label, icon: Icon, tab, route }) => {
-        const isActive = activeTab === tab;
-        return (
-          <button
-            key={label}
-            onClick={() => {
-              setActiveTab(tab);
-              navigate(`${route}`);
-            }}
-            className={`w-full text-left px-4 py-2 rounded-md flex items-center gap-2 transition-colors duration-200
-              ${
-                isActive
-                  ? "bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-600/10"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-          >
-            <Icon className="w-5 h-5" />
-            {label}
-          </button>
-        );
-      })}
-    </nav>
-  </div>
+      {/* Navigation Section */}
+      <div className="flex-1 px-4 overflow-y-auto custom-scrollbar">
+        <nav className="space-y-1.5">
+          {sidebarItems.map(({ label, icon: Icon, tab, route }) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={label}
+                onClick={() => {
+                  setActiveTab(tab);
+                  navigate(`${route}`);
+                }}
+                className={`w-full group flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 cursor-pointer
+                  ${
+                    isActive
+                      ? "bg-slate-900 text-white shadow-xl shadow-slate-200"
+                      : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`text-lg transition-transform group-hover:scale-110 ${isActive ? 'text-blue-400' : ''}`}>
+                    <Icon />
+                  </div>
+                  <span className="text-sm font-bold tracking-tight">{label}</span>
+                </div>
+                {isActive && <FiChevronRight className="text-blue-400" />}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-  {/* Logout */}
-  <button
-     // Add your logout function
-    className="w-full text-left px-4 py-2 rounded-md flex items-center gap-2 transition-colors duration-200 text-red-500 hover:cursor-pointer hover:bg-red-500/10 hover:border hover:border-red-500/20"
-    onClick={()=>{
-      logout();
-      navigate('/');
-    }}
-  >
-    <MdLogout />
-    Logout
-  </button>
-</aside>
-
+      {/* User Info & Logout Section */}
+      <div className="p-4 border-t border-slate-50">
+        <div className="bg-slate-50 rounded-2xl p-4 mb-4 flex items-center gap-3">
+           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white shadow-md">
+              {user?.name?.charAt(0) || "U"}
+           </div>
+           <div className="overflow-hidden">
+              <p className="text-sm font-bold text-slate-900 truncate">{user?.name}</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate">{user?.role}</p>
+           </div>
+        </div>
+        
+        <button
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all font-bold text-sm cursor-pointer group"
+          onClick={() => {
+            logout();
+            navigate('/');
+          }}
+        >
+          <MdLogout className="text-lg group-hover:rotate-12 transition-transform" />
+          Logout
+        </button>
+      </div>
+    </aside>
   );
 };
 
