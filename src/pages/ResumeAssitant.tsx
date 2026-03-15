@@ -1,10 +1,22 @@
 import React, { useState, useRef, useEffect, type ChangeEvent } from "react";
-import { FiUpload, FiSend, FiPlus } from "react-icons/fi";
+import { 
+  FiUpload, 
+  FiSend, 
+  FiPlus, 
+  FiTrash2, 
+  FiCheckCircle, 
+  FiCpu, 
+  FiFileText, 
+  FiUser,
+  FiZap
+} from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { toast } from "sonner";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const ResumeAssistant: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -16,10 +28,11 @@ const ResumeAssistant: React.FC = () => {
   >([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const token = localStorage.getItem("token");
 
-  // Auto-scroll to bottom when new message or loading changes
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -33,10 +46,10 @@ const ResumeAssistant: React.FC = () => {
         ...prev,
         {
           role: "system",
-          content: `✅ Resume uploaded successfully: **${selectedFile.name}**`,
+          content: `✅ Resume analyzed: **${selectedFile.name}**`,
         },
       ]);
-      toast.success(`Uploaded: ${selectedFile.name}`);
+      toast.success(`Loaded: ${selectedFile.name}`);
     }
   };
 
@@ -47,7 +60,7 @@ const ResumeAssistant: React.FC = () => {
     }
 
     if (!prompt.trim()) {
-      toast.error("Please enter a prompt or question.");
+      toast.error("Please enter a question.");
       return;
     }
 
@@ -78,162 +91,185 @@ const ResumeAssistant: React.FC = () => {
             : JSON.stringify(res.data.data, null, 2);
 
         setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-        toast.success("AI response received!");
       } else {
-        toast.error(res.data.message || "Something went wrong");
+        toast.error(res.data.message || "Failed to process resume");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Error getting AI response");
+      toast.error("AI service error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50/50 font-sans text-slate-900">
       <SideBar />
 
-      <main className="flex-1 pl-72 p-8 h-screen flex flex-col">
-        <h1 className="text-2xl font-bold mb-2">AI Resume Assistant</h1>
-        <p className="text-gray-500 mb-6">
-          Chat with the AI to improve, format, or analyze your resume
-        </p>
+      <main className="flex-1 ml-20 flex flex-col h-screen overflow-hidden transition-all duration-300">
+        {/* Sticky Header */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-100">
+              <FiCpu className="text-xl" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">AI Resume Assistant</h1>
+              {/* <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">GPT-4 Turbo Powered</p>
+              </div> */}
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {file && (
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold">
+                <FiFileText /> {file.name}
+              </div>
+            )}
+          </div>
+        </header>
 
-        {/* Chat Section */}
-        <div className="flex flex-col flex-1 bg-white border border-black/10 rounded-md shadow-sm p-6">
-          <div className="flex-1 mb-4 space-y-4 bg-gray-50 rounded-md p-4 border border-gray-100">
+        {/* Chat Feed */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar bg-gray-50/30">
+          <div className="max-w-4xl mx-auto space-y-8">
             {messages.length === 0 && !loading && (
-              <p className="text-gray-400 text-sm text-center">
-                👋 Start by uploading your resume or asking a question.
-              </p>
+              <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-top-4">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-slate-200">
+                  <FiCpu className="text-4xl text-blue-600" />
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">How can I help with your career?</h2>
+                <p className="text-slate-400 font-medium max-w-sm">Upload your resume and ask for improvements, ATS optimization, or career-specific formatting.</p>
+              </div>
             )}
 
-            <div className="h-72 overflow-y-scroll flex flex-col gap-3">
-              {messages.map((msg, idx) => (
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                } animate-in fade-in slide-in-from-bottom-2`}
+              >
                 <div
-                  key={idx}
-                  className={`flex ${
-                    msg.role === "user"
-                      ? "justify-end"
+                  className={`max-w-[85%] md:max-w-[70%] p-5 rounded-3xl text-sm md:text-base transition-all
+                    ${msg.role === "user"
+                      ? "bg-slate-900 text-white rounded-tr-none shadow-xl shadow-slate-200"
                       : msg.role === "assistant"
-                        ? "justify-start"
-                        : "justify-center"
-                  }`}
-                >
-                  <div
-                    className={`max-w-[75%] p-3 rounded-lg text-sm md:text-base shadow-sm ${
-                      msg.role === "user"
-                        ? "bg-blue-500/10 text-blue-500 border border-blue-500/50"
-                        : msg.role === "assistant"
-                          ? "bg-white border border-gray-300 text-gray-800"
-                          : "bg-gray-100 text-gray-700 italic text-center"
+                        ? "bg-white border border-slate-100 text-slate-800 rounded-tl-none shadow-sm"
+                        : "bg-blue-50 text-blue-700 border border-blue-100 italic text-center mx-auto text-xs font-bold px-6 py-2"
                     }`}
-                  >
-                    {msg.role === "assistant" ? (
-                      <div className="prose prose-slate max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p>{msg.content}</p>
-                    )}
-                  </div>
+                >
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-slate max-w-none prose-sm md:prose-base leading-relaxed
+                      prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-600 prose-strong:text-blue-600 prose-code:bg-slate-50 prose-code:p-1 prose-code:rounded">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="font-medium leading-relaxed">{msg.content}</p>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
 
             {loading && (
-              <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-lg p-3 text-gray-500 italic flex items-center gap-2">
-                  {/* <span>Generating Response</span> */}
+              <div className="flex justify-start animate-in fade-in">
+                <div className="bg-white border border-slate-100 rounded-3xl rounded-tl-none p-5 text-blue-600 shadow-sm flex items-center gap-3">
+                  <FiCpu className="animate-spin text-xl" />
                   <div className="flex space-x-1">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></span>
                   </div>
                 </div>
               </div>
             )}
-
-            <div ref={chatEndRef} />
+            <div ref={chatEndRef} className="h-4" />
           </div>
+        </div>
 
-          {/* Chat Input + Actions */}
-          <div className="flex items-center gap-2 relative">
-            {/* "+" Button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUploadMenu((prev) => !prev)}
-                className="p-2 rounded-md border border-gray-200 hover:bg-gray-100 transition"
-              >
-                <FiPlus className="text-gray-700" />
-              </button>
-
-              {showUploadMenu && (
-                <div className="absolute bottom-12 left-0 bg-white border border-gray-200 shadow-md rounded-md p-2 w-48 z-10">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md"
-                  >
-                    <FiUpload /> Upload Resume
-                  </button>
-                  <button
-                    onClick={() => {
-                      setMessages([]);
-                      setFile(null);
-                      toast.info("Chat cleared");
-                      setShowUploadMenu(false);
-                    }}
-                    className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-md"
-                  >
-                    🗑️ Clear Chat
-                  </button>
-                </div>
-              )}
+        {/* Input area Container */}
+        <div className="bg-white border-t border-slate-100 p-4 md:p-6 lg:px-12">
+          <div className="max-w-4xl mx-auto">
+            {/* Quick Suggestions - Horizontal scrollable on mobile */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4">
+              {quickSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  onClick={() => setPrompt(suggestion)}
+                  className="px-4 py-2 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-100 hover:border-blue-100 rounded-xl text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 group"
+                >
+                  <FiZap className="text-amber-500 group-hover:scale-110 transition-transform" /> {suggestion}
+                </button>
+              ))}
             </div>
 
-            {/* Hidden File Input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+            {/* Main Input Bar */}
+            <div className="bg-slate-50 rounded-[2rem] p-2 flex items-center gap-2 border border-slate-100 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
+              <div className="relative">
+                <button
+                  onClick={() => setShowUploadMenu((prev) => !prev)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer
+                    ${file ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100' : 'bg-white text-slate-400 hover:text-blue-600 shadow-sm'}`}
+                >
+                  {file ? <FiCheckCircle className="text-xl" /> : <FiPlus className="text-xl" />}
+                </button>
 
-            {/* Chat Input */}
-            <input
-              type="text"
-              placeholder="Ask me anything about resume writing..."
-              className="flex-1 border border-black/20 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            />
+                {showUploadMenu && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setShowUploadMenu(false)}></div>
+                    <div className="absolute bottom-full left-0 mb-4 bg-white border border-slate-100 shadow-2xl rounded-2xl p-2 w-56 z-30 animate-in slide-in-from-bottom-2 duration-200">
+                      <button
+                        onClick={() => { fileInputRef.current?.click(); setShowUploadMenu(false); }}
+                        className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 rounded-xl transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><FiUpload /></div>
+                        Upload Resume
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMessages([]);
+                          setFile(null);
+                          toast.info("Session reset");
+                          setShowUploadMenu(false);
+                        }}
+                        className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center"><FiTrash2 /></div>
+                        Reset Assistant
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
 
-            {/* Send Button */}
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="p-2 rounded-md shadow-xs bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              <FiSend />
-            </button>
-          </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.txt"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
 
-          {/* Quick Suggestions */}
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {quickSuggestions.map((suggestion) => (
+              <input
+                type="text"
+                placeholder={file ? "Ask about your resume..." : "Upload resume to begin analysis..."}
+                className="flex-1 bg-transparent border-none px-4 py-3 text-sm font-medium outline-none text-slate-800 placeholder:text-slate-400"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              />
+
               <button
-                key={suggestion}
-                onClick={() => setPrompt(suggestion)}
-                className="px-3 py-1 text-sm border border-black/20 rounded-sm flex items-center gap-1 hover:bg-gray-100 transition"
+                onClick={handleSubmit}
+                disabled={loading || !file || !prompt.trim()}
+                className="w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-blue-600 disabled:opacity-30 disabled:bg-slate-200 transition-all shadow-lg hover:shadow-blue-100 cursor-pointer shrink-0"
               >
-                {suggestion}
+                <FiSend className="text-lg" />
               </button>
-            ))}
+            </div>
+            <p className="text-[10px] text-center text-slate-400 mt-3 font-medium uppercase tracking-widest">Powered by PlaceNest Career AI Engine</p>
           </div>
         </div>
       </main>
@@ -244,10 +280,10 @@ const ResumeAssistant: React.FC = () => {
 export default ResumeAssistant;
 
 const quickSuggestions: string[] = [
-  "Suggestions to improve my resume for SDE role",
-  "Format my resume for Data Analyst position",
-  "Give me a summary of my strengths",
-  "Highlight my technical projects",
-  "How can I make my resume more ATS-friendly?",
-  "Rewrite my professional summary for fresher SDE",
+  "Improve for SDE role",
+  "ATS Check",
+  "Summarize strengths",
+  "Technical projects feedback",
+  "Role-specific formatting",
+  "Rewrite summary",
 ];
