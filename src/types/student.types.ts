@@ -20,6 +20,7 @@ export interface StudentProfile {
   activeBacklog: boolean;
   backlogs: number;
   resumeUrl: string;
+  linkedinUrl: string;
   description?: string;
 }
 
@@ -34,6 +35,7 @@ export interface StudentVerification {
   activeBacklog: boolean;
   backlogs: number;
   resumeUrl: string;
+  linkedinUrl: string;
   description?: string;
   verificationStatus: VerificationType;
   role: Role;
