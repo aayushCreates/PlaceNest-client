@@ -4,25 +4,54 @@ import {
   FiFileText,
   FiMapPin,
   FiSearch,
+  FiArrowRight,
+  FiPlus,
+  FiExternalLink,
+  FiUpload,
+  FiX,
+  FiUser,
+  FiCpu,
+  FiGlobe,
+  FiFilter
 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
 import SideBar from "../components/SideBar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import type { Job } from "../types/job.types";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+type ScrappedJob = {
+  id: string;
+  title: string;
+  companyName: string;
+  description: string;
+  requiredSkills: string[];
+  allowedBatches: string[];
+  allowedBranches: string[];
+  salary: string;
+  jobUrl: string;
+  location: string;
+  requiredExperience: string;
+  postPlatform: string;
+  postedAt: string | null;
+  isDeadlineGiven: boolean;
+  expiredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 const OtherJobs = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [initialJobData, setInitialJobData] = useState<Job[]>([]);
+  const [jobs, setJobs] = useState<ScrappedJob[]>([]);
+  const [initialJobData, setInitialJobData] = useState<ScrappedJob[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [openModal, setOpenModal] = useState(false);
-  const [step, setStep] = useState(1); // 1 = personal info, 2 = company details
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -35,17 +64,15 @@ const OtherJobs = () => {
 
   const [uploadedUrl, setUploadedUrl] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isCreatingJob, setIsCreatingJob] = useState(false);
 
-  const branchData = ["CS", "CY", "IT", "ME", "ECE", "EIC", "EE", "CE"];
-  const jobTypes = ["Internship", "PartTime", "FullTime", "Contract"];
-
-  const{ user } = useAuth();
+  const { user } = useAuth();
 
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_API_URL}/job/`,
+        `${import.meta.env.VITE_OTHERJOBS_API_URL}/jobs/scrapped`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,8 +81,11 @@ const OtherJobs = () => {
       );
 
       if (Array.isArray(response.data.data)) {
-        setInitialJobData(response.data.data);
-        setJobs(response.data.data);
+        const sortedJobs = [...response.data.data].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setInitialJobData(sortedJobs);
+        setJobs(sortedJobs);
       }
     } catch (err) {
       toast.error("Error in fetching jobs");
@@ -68,17 +98,13 @@ const OtherJobs = () => {
     fetchJobs();
   }, []);
 
-  const handleFilter = (input: string) => {
-    if (input === "") {
-      setJobs(initialJobData);
-    } else {
-      setJobs(
-        initialJobData.filter((job) =>
-          job.title?.toLowerCase().includes(input.toLowerCase())
-        )
-      );
-    }
-  };
+  const filteredJobs = useMemo(() => {
+    return initialJobData.filter(job => 
+      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.companyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.requiredSkills?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [searchQuery, initialJobData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -94,13 +120,12 @@ const OtherJobs = () => {
 
     try {
       setUploadProgress(0);
-
-      const formData = new FormData();
-      formData.append("image", uploadData.image);
+      const data = new FormData();
+      data.append("image", uploadData.image);
 
       const res = await axios.post(
         `${import.meta.env.VITE_OTHERJOBS_API_URL}/upload`,
-        formData,
+        data,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -115,48 +140,15 @@ const OtherJobs = () => {
       );
 
       setUploadedUrl(res.data.data.url);
-      console.log("res after img upload: ", res);
-
-      toast.success("Image uploaded successfully!");
+      toast.success("Image processed successfully!");
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to upload image.");
     }
   };
 
-  const handleScrappedJob = async () => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_OTHERJOBS_API_URL}/job/scrapped/data`,
-        { ...formData, image: uploadedUrl },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      console.log("response: ", response);
-      if (response.data.success) {
-        toast.success("✅ Job created successfully!");
-        setOpenModal(false);
-        setStep(1);
-        setFormData({
-          name: "",
-          branch: "",
-          image: null,
-          companyName: "",
-          jobUrl: "",
-          companyWebsite: "",
-        });
-        setUploadedUrl("");
-        setUploadProgress(0);
-        // Refetch jobs after creating a new one
-        fetchJobs();
-      }
-    } catch (err) {
-      toast.error("Error creating job");
-    }
-  };
   const handleCreateJob = async () => {
+    setIsCreatingJob(true);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_OTHERJOBS_API_URL}/job/scrapped/data`,
@@ -166,9 +158,8 @@ const OtherJobs = () => {
         }
       );
 
-      console.log("response: ", response);
       if (response.data.success) {
-        toast.success("✅ Job created successfully!");
+        toast.success("✅ External job added successfully!");
         setOpenModal(false);
         setStep(1);
         setFormData({
@@ -181,321 +172,339 @@ const OtherJobs = () => {
         });
         setUploadedUrl("");
         setUploadProgress(0);
-        // Refetch jobs after creating a new one
         fetchJobs();
       }
     } catch (err) {
-      toast.error("Error creating job");
+      toast.error("Error creating job entry");
+    } finally {
+      setIsCreatingJob(false);
     }
   };
 
   const renderModal = () => (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 text-center">
-          {step === 1 ? "Add Basic Details" : "Add Company Details"}
-        </h2>
-
-        {/* STEP 1 — Basic Info */}
-        {step === 1 && (
-          <div className="space-y-4">
-            {/* Upload Image */}
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="p-8 lg:p-10">
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job Post Image
-              </label>
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleChange}
-                className="block w-full text-sm border border-gray-300 rounded-md p-2"
-              />
+              <h2 className="text-2xl font-bold text-slate-900">
+                {step === 1 ? "Job Intelligence" : "Finalize Details"}
+              </h2>
+              <p className="text-sm text-slate-500 font-medium">Step {step} of 2</p>
+            </div>
+            <button 
+              onClick={() => setOpenModal(false)}
+              className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+            >
+              <FiX />
+            </button>
+          </div>
 
-              {/* Upload Button + Progress */}
-              <div className="mt-3 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleUploadImage(formData);
-                  }}
-                  disabled={!formData.image}
-                  className={`px-4 py-2 rounded-md transition hover:cursor-pointer ${
-                    formData.image
-                      ? "bg-blue-500/20 text-blue-500 border border-blue-500/20"
-                      : "bg-gray-500/20 text-gray-500 border border-gray-500/20 cursor-not-allowed"
-                  }`}
+          {step === 1 ? (
+            <div className="space-y-6">
+              {/* Image Upload Area */}
+              <div className="relative group">
+                <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">Job Screenshot / Banner</label>
+                <div className={`border-2 border-dashed rounded-[2rem] p-8 transition-all text-center
+                  ${formData.image ? 'border-blue-200 bg-blue-50/30' : 'border-slate-200 bg-slate-50 hover:border-blue-300'}`}
                 >
-                  Upload Image
-                </button>
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    onChange={handleChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="flex flex-col items-center">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-2xl transition-all
+                      ${formData.image ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-400 shadow-sm'}`}
+                    >
+                      <FiUpload />
+                    </div>
+                    <p className="text-sm font-bold text-slate-700">
+                      {formData.image ? formData.image.name : "Drop job image here or click"}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1 font-medium italic">Supports JPG, PNG up to 5MB</p>
+                  </div>
+                </div>
 
-                {/* Progress Bar */}
-                {uploadProgress > 0 && (
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
+                {formData.image && !uploadedUrl && (
+                  <button
+                    type="button"
+                    onClick={() => handleUploadImage(formData)}
+                    className="w-full mt-4 bg-blue-600 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <FiCpu /> Process with AI
+                  </button>
+                )}
+
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-[10px] font-black uppercase text-blue-600 mb-1 tracking-widest">
+                      <span>Analyzing...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-blue-600 h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                    </div>
                   </div>
                 )}
 
-                {/* Uploaded URL */}
                 {uploadedUrl && (
-                  <p className="text-green-600 text-xs break-all">
-                    ✅ Uploaded URL: {uploadedUrl}
-                  </p>
+                  <div className="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-2 text-emerald-700 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
+                    <FiCheckCircle className="shrink-0" /> Job processed and ready!
+                  </div>
                 )}
               </div>
-            </div>
 
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter name"
-                className="w-full border border-gray-300 rounded-md p-2"
-                required
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Creator Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Your name"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Target Branch</label>
+                  <input
+                    type="text"
+                    name="branch"
+                    value={formData.branch}
+                    onChange={handleChange}
+                    placeholder="e.g. CSE, IT"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-slate-800"
+                  />
+                </div>
+              </div>
 
-            {/* Branch */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Branch
-              </label>
-              <input
-                type="text"
-                name="branch"
-                value={formData.branch}
-                onChange={handleChange}
-                placeholder="Branch (e.g. CSE, IT)"
-                className="w-full border border-gray-300 rounded-md p-2"
-                required
-              />
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setOpenModal(false)}
+                  className="px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  disabled={!formData.name || !formData.branch || !uploadedUrl}
+                  className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm shadow-xl shadow-slate-200 hover:bg-blue-600 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  Next Step <FiArrowRight />
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Company Name</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    placeholder="Enter company name"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Official Job URL</label>
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500">
+                      <FiGlobe />
+                    </div>
+                    <input
+                      type="url"
+                      name="jobUrl"
+                      value={formData.jobUrl}
+                      onChange={handleChange}
+                      placeholder="https://career.site/..."
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-11 pr-4 py-3.5 outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-slate-800"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Company Website</label>
+                  <input
+                    type="url"
+                    name="companyWebsite"
+                    value={formData.companyWebsite}
+                    onChange={handleChange}
+                    placeholder="https://..."
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none focus:bg-white focus:border-blue-500 transition-all font-medium text-slate-800"
+                  />
+                </div>
+              </div>
 
-            {/* Buttons */}
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpenModal(false);
-                  setFormData({
-                    name: "",
-                    branch: "",
-                    image: null as File | null,
-                    companyName: "",
-                    jobUrl: "",
-                    companyWebsite: "",
-                  });
-                  setUploadedUrl("");
-                  setUploadProgress(0);
-                }}
-                className="px-4 py-2 text-gray-500 hover:cursor-pointer border border-neutral-500/10 rounded-sm hover:bg-neutral-200/10 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setStep(2);
-                  handleScrappedJob();
-                }}
-                disabled={!formData.name || !formData.branch || !uploadedUrl}
-                className={`px-4 py-2 rounded-md transition ${
-                  formData.name && formData.branch && uploadedUrl !== ""
-                    ? "bg-blue-600/10 border border-blue-500/10 hover:bg-blue-700 text-blue-500"
-                    : "bg-neutral-500/10 text-neutral-500 border border-neutral-400/10 cursor-not-allowed"
-                }`}
-              >
-                Save & Next
-              </button>
+              <div className="flex justify-between pt-6 border-t border-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="px-6 py-3.5 text-slate-500 font-bold text-sm hover:bg-slate-50 rounded-2xl transition-all cursor-pointer"
+                >
+                  ← Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateJob}
+                  disabled={isCreatingJob}
+                  className="px-8 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  {isCreatingJob ? "Creating..." : <><FiCheckCircle /> Add to Portal</>}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* STEP 2 — Company Details */}
-        {step === 2 && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name
-              </label>
-              <input
-                type="text"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-                placeholder="Company name"
-                className="w-full border border-gray-300 rounded-md p-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Job URL
-              </label>
-              <input
-                type="url"
-                name="jobUrl"
-                value={formData.jobUrl}
-                onChange={handleChange}
-                placeholder="https://company.com/job"
-                className="w-full border border-gray-300 rounded-md p-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Website
-              </label>
-              <input
-                type="url"
-                name="companyWebsite"
-                value={formData.companyWebsite}
-                onChange={handleChange}
-                placeholder="https://company.com"
-                className="w-full border border-gray-300 rounded-md p-2"
-              />
-            </div>
-
-            <div className="flex justify-between pt-4">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
-              >
-                ← Back
-              </button>
-              <button
-                type="button"
-                onClick={handleCreateJob}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
-              >
-                Create Job
-              </button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50/50 font-sans text-slate-900">
       <SideBar />
 
-      <main className="flex-1 pl-72 p-8">
-        <div className="flex justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">Job Opportunities</h1>
-            <p className="text-gray-500 mb-6">
-              Discover and apply for jobs that match your profile
-            </p>
+      <main className="flex-1 ml-20 p-4 md:p-8 lg:p-12 transition-all duration-300 overflow-x-hidden">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <div className="max-w-full overflow-hidden">
+            <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest border border-blue-100 mb-2">
+              External Feed
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 truncate">Off-Campus Opportunities</h1>
+            <p className="text-sm md:text-base text-slate-500 font-medium mt-1">Explore job postings from various external sources and job boards.</p>
           </div>
-          {user?.role === "COORDINATOR" && (
-            <button
-              onClick={() => setOpenModal(true)}
-              className="h-fit bg-blue-500/10 text-blue-500 border border-blue-500/50 px-4 py-1.5 rounded-sm shadow-xs hover:cursor-pointer hover:bg-blue-500/20"
-            >
-              Scrappe Job via Img
-            </button>
-          )}
-        </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {user?.role === "COORDINATOR" && (
+              <button
+                onClick={() => setOpenModal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl md:rounded-2xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 cursor-pointer"
+              >
+                <FiPlus className="text-lg" /> Scrape Job
+              </button>
+            )}
+          </div>
+        </header>
 
         {/* Filter Bar */}
-        <div className="bg-white border border-black/10 rounded-md p-4 mb-6 shadow-xs">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <FiSearch /> Filter Jobs
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-3xl lg:rounded-[2.5rem] p-6 md:p-8 border border-slate-100 shadow-sm mb-10">
+          <div className="flex items-center gap-3 mb-6 px-1">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <FiSearch />
+            </div>
+            <h3 className="font-bold text-slate-800">Quick Search</h3>
+          </div>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+              <FiFilter />
+            </div>
             <input
               type="text"
-              placeholder="Search jobs"
-              className="border border-black/20 rounded-md px-3 py-2 w-full"
-              onChange={(e) => handleFilter(e.target.value)}
+              placeholder="Filter by company, role or skills..."
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-11 pr-4 py-4 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all font-medium text-sm text-slate-800"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <select className="border border-black/20 rounded-md px-3 py-2 w-full">
-              {branchData.map((b, idx) => (
-                <option key={idx}>{b}</option>
-              ))}
-            </select>
-            <select className="border border-black/20 rounded-md px-3 py-2 w-full">
-              {jobTypes.map((b, idx) => (
-                <option key={idx}>{b}</option>
-              ))}
-            </select>
           </div>
         </div>
 
         {/* Job List */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {isLoading ? (
-            <div className="flex flex-col items-center mt-32">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-3 text-gray-500">Loading jobs...</p>
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-slate-400 font-medium mt-4">Scouring the web for roles...</p>
             </div>
-          ) : jobs.length === 0 ? (
-            <div className="flex justify-center items-center h-64">
-              <h1 className="text-2xl font-bold text-gray-400">
-                No jobs available
-              </h1>
+          ) : filteredJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300 text-4xl">
+                <FiBriefcase />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">No external jobs found</h2>
+              <p className="text-slate-400 text-sm mt-2 max-w-xs text-center">We couldn't find any roles matching your current search criteria.</p>
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="mt-6 text-blue-600 font-bold hover:underline cursor-pointer"
+                >
+                  View all opportunities
+                </button>
+              )}
             </div>
           ) : (
-            jobs.map((job) => (
+            filteredJobs.map((job) => (
               <div
                 key={job.id}
-                className="bg-white p-6 rounded-md border border-black/10 shadow-xs transition"
+                className="group bg-white p-6 md:p-8 rounded-3xl lg:rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
               >
-                {/* Header */}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="font-semibold text-lg text-gray-800">
-                      {job.title}
-                    </h2>
-                    <p className="text-gray-500 text-sm flex items-center gap-1">
-                      <FiBriefcase /> {job.company?.name}
-                    </p>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                  <div className="flex items-start md:items-center gap-5 overflow-hidden">
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-100 transition-all text-xl md:text-2xl shrink-0 uppercase">
+                      {job.companyName?.charAt(0) || "J"}
+                    </div>
+                    <div className="overflow-hidden">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <h2 className="text-lg md:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                          {job.title}
+                        </h2>
+                        <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-blue-100 bg-blue-50 text-blue-700">
+                          {job.postPlatform}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 font-medium">
+                        <span className="flex items-center gap-1.5"><FiBriefcase className="text-slate-400" /> {job.companyName}</span>
+                        <span className="flex items-center gap-1.5"><FiMapPin className="text-slate-400" /> {job.location}</span>
+                        <span className="flex items-center gap-1.5 text-blue-600 font-bold"><FiClock className="text-blue-400" /> {job.postedAt ? new Date(job.postedAt).toLocaleDateString() : 'Recently'}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="px-3 py-1 rounded-sm font-medium bg-green-100 text-green-700">
-                      {job.type}
-                    </span>
-                    <span className="flex items-center gap-1 text-gray-400">
-                      <FiClock /> {job.createdAt} days ago
-                    </span>
-                  </div>
-                </div>
 
-                {/* Description */}
-                <p className="mt-3 text-gray-600 text-sm">{job.description}</p>
-
-                {/* Footer */}
-                <div className="flex justify-between items-center mt-5 text-sm text-gray-500 flex-wrap gap-2">
-                  <div className="flex gap-6 flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <FiMapPin /> {job.location}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <FiFileText /> Deadline: {job.deadline}
-                    </span>
-                    <span className="font-medium">₹{job.salary}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      className="px-4 py-2 border border-black/10 rounded-md text-gray-700 hover:bg-gray-100 transition text-sm hover:cursor-pointer"
-                      onClick={() => navigate(`/student/job/${job.id}`)}
+                  <div className="flex items-center lg:items-end shrink-0 w-full sm:w-auto">
+                    <a
+                      href={job.jobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 shadow-lg shadow-slate-200 hover:shadow-blue-100 transition-all group/btn flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      View Details
-                    </button>
+                      Apply Externally <FiExternalLink className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    </a>
                   </div>
                 </div>
+
+                {/* Description Preview */}
+                <div className="mt-6 pt-6 border-t border-slate-50">
+                   <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 md:line-clamp-1 italic">
+                     "{job.description}"
+                   </p>
+                </div>
+
+                {/* Skills Tags */}
+                {job.requiredSkills && job.requiredSkills.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {job.requiredSkills.map((skill, index) => (
+                      <span
+                        key={index}
+                        className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-bold uppercase tracking-wider group-hover:border-blue-100 group-hover:text-blue-600 transition-colors"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Deadline Info */}
+                {job.isDeadlineGiven && job.expiredAt && (
+                  <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-rose-500/70 uppercase tracking-widest bg-rose-50/50 w-fit px-3 py-1 rounded-full border border-rose-100/50">
+                    <FiFileText /> Ends {new Date(job.expiredAt).toLocaleDateString()}
+                  </div>
+                )}
               </div>
             ))
           )}
