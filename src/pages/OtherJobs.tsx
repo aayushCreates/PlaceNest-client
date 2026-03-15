@@ -381,7 +381,7 @@ const OtherJobs = () => {
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 truncate">Off-Campus Opportunities</h1>
             <p className="text-sm md:text-base text-slate-500 font-medium mt-1">Explore job postings from various external sources and job boards.</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          {/* <div className="flex items-center gap-3 shrink-0">
             {user?.role === "COORDINATOR" && (
               <button
                 onClick={() => setOpenModal(true)}
@@ -390,7 +390,7 @@ const OtherJobs = () => {
                 <FiPlus className="text-lg" /> Scrape Job
               </button>
             )}
-          </div>
+          </div> */}
         </header>
 
         {/* Filter Bar */}
