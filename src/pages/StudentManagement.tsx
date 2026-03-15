@@ -12,7 +12,11 @@ import {
   FiActivity,
   FiUserCheck,
   FiUserX,
-  FiUserPlus
+  FiUserPlus,
+  FiInfo,
+  FiAlertCircle,
+  FiLinkedin,
+  FiFileText
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { toast } from "sonner";
@@ -312,6 +316,9 @@ export default function StudentManagement() {
                   { label: "Phone", val: selectedStudent.phone, icon: <FiPhone /> },
                   { label: "Branch", val: selectedStudent.branch, icon: <FiBookOpen /> },
                   { label: "Batch", val: `${selectedStudent.year} YEAR`, icon: <FiCalendar /> },
+                  { label: "CGPA", val: selectedStudent.cgpa || "N/A", icon: <FiActivity /> },
+                  { label: "Backlogs", val: selectedStudent.backlogs ?? "N/A", icon: <FiAlertCircle /> },
+                  { label: "Backlog Status", val: selectedStudent.activeBacklog ? "Active" : "None", icon: <FiAlertCircle /> },
                   { label: "Student ID", val: selectedStudent.id.slice(-8), icon: <FiInfo /> }
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -322,10 +329,25 @@ export default function StudentManagement() {
                   </div>
                 ))}
               </div>
+
+              <div className="w-full grid grid-cols-2 gap-3 mt-4">
+                <button
+                  onClick={() => selectedStudent.linkedinUrl ? window.open(selectedStudent.linkedinUrl, "_blank") : toast.error("LinkedIn URL not provided")}
+                  className="flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-100 transition-all cursor-pointer"
+                >
+                  <FiLinkedin /> LinkedIn
+                </button>
+                <button
+                  onClick={() => selectedStudent.resumeUrl ? window.open(selectedStudent.resumeUrl, "_blank") : toast.error("Resume not provided")}
+                  className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800 transition-all cursor-pointer"
+                >
+                  <FiFileText /> View Resume
+                </button>
+              </div>
               
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="w-full mt-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-blue-600 transition-all shadow-xl shadow-slate-200"
+                className="w-full mt-6 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-sm hover:bg-slate-50 transition-all"
               >
                 Close Profile
               </button>
