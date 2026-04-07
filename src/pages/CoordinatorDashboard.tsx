@@ -232,7 +232,7 @@ export default function CoordinatorDashboard() {
 
               <div className="space-y-6">
                 {departments.map(({ dep, key, total, placed, pct }) => (
-                  <div key={key} className="group p-4 md:p-5 rounded-3xl border border-slate-50 hover:border-blue-100 hover:bg-blue-50/10 transition-all">
+                  <div key={key} className="group p-4 md:p-5 rounded-3xl border border-gray-500/20 hover:border-blue-100 hover:bg-blue-50/10 transition-all">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                       <div>
                         <h4 className="font-bold text-slate-900 text-base">{dep}</h4>
@@ -285,54 +285,9 @@ export default function CoordinatorDashboard() {
                 ))}
               </div>
             </section>
-
-            {/* Quick Activity Card */}
-            <InfoBlock icon={FiActivity} title="Portal Activity" iconBg="bg-purple-50" iconColor="text-purple-600">
-               <div className="space-y-5">
-                  <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Jobs</span>
-                    <span className="font-black text-slate-900 text-sm">{totalActiveJobs}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Students</span>
-                    <span className="font-black text-slate-900 text-sm">{students.length}</span>
-                  </div>
-                  <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-tighter pt-4">
-                    Live system status • {new Date().toLocaleTimeString()}
-                  </p>
-               </div>
-            </InfoBlock>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-function InfoBlock({
-  icon: Icon,
-  title,
-  children,
-  iconBg = "bg-blue-50",
-  iconColor = "text-blue-600",
-}: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-  iconBg?: string;
-  iconColor?: string;
-}) {
-  return (
-    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm h-full">
-      <div className="flex items-center gap-3 mb-6">
-        <div className={`w-10 h-10 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center text-lg shrink-0`}>
-          <Icon />
-        </div>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-      </div>
-      <div className="text-slate-600 leading-relaxed">
-        {children}
-      </div>
     </div>
   );
 }

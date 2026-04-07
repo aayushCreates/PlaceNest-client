@@ -14,7 +14,7 @@ import {
   FiXCircle,
   FiUser,
   FiArrowRight,
-  FiDownload
+  FiDownload,
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useEffect, useState, useMemo } from "react";
@@ -24,7 +24,13 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const Badge = ({ children, variant = "default" }: { children: React.ReactNode, variant?: string }) => {
+const Badge = ({
+  children,
+  variant = "default",
+}: {
+  children: React.ReactNode;
+  variant?: string;
+}) => {
   const styles: Record<string, string> = {
     default: "bg-slate-50 text-slate-600 border-slate-100",
     blue: "bg-blue-50 text-blue-700 border-blue-100",
@@ -33,7 +39,9 @@ const Badge = ({ children, variant = "default" }: { children: React.ReactNode, v
     rose: "bg-rose-50 text-rose-700 border-rose-100",
   };
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${styles[variant] || styles.default}`}>
+    <span
+      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${styles[variant] || styles.default}`}
+    >
       {children}
     </span>
   );
@@ -53,11 +61,29 @@ export default function ManageJobs() {
   const [jobApplications, setJobApplications] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const stats = useMemo(() => [
-    { label: "Total Postings", val: companyJobs.length, icon: <FiBriefcase />, color: "slate" },
-    { label: "Active Roles", val: totalActiveJobs, icon: <FiTrendingUp />, color: "blue" },
-    { label: "Drafts", val: totalPendingJobs, icon: <FiFileText />, color: "amber" },
-  ], [companyJobs.length, totalActiveJobs, totalPendingJobs]);
+  const stats = useMemo(
+    () => [
+      {
+        label: "Total Postings",
+        val: companyJobs.length,
+        icon: <FiBriefcase />,
+        color: "slate",
+      },
+      {
+        label: "Active Roles",
+        val: totalActiveJobs,
+        icon: <FiTrendingUp />,
+        color: "blue",
+      },
+      {
+        label: "Drafts",
+        val: totalPendingJobs,
+        icon: <FiFileText />,
+        color: "amber",
+      },
+    ],
+    [companyJobs.length, totalActiveJobs, totalPendingJobs]
+  );
 
   const fetchJobs = async () => {
     if (!user?.id || !token) return;
@@ -91,9 +117,10 @@ export default function ManageJobs() {
   }, [user?.id]);
 
   const filteredJobs = useMemo(() => {
-    return companyJobs.filter(j => 
-      j.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      j.location.toLowerCase().includes(searchQuery.toLowerCase())
+    return companyJobs.filter(
+      (j) =>
+        j.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        j.location.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, companyJobs]);
 
@@ -109,7 +136,10 @@ export default function ManageJobs() {
     setJobApplications([]);
   };
 
-  const handleAcceptReject = async (appId: string, status: "ACCEPTED" | "REJECTED") => {
+  const handleAcceptReject = async (
+    appId: string,
+    status: "ACCEPTED" | "REJECTED"
+  ) => {
     try {
       await axios.patch(
         `${import.meta.env.VITE_BASE_API_URL}/application/${appId}/status`,
@@ -120,12 +150,12 @@ export default function ManageJobs() {
       setJobApplications((prev) =>
         prev.map((a) => (a.id === appId ? { ...a, status } : a))
       );
-      setCompanyJobs(prevJobs => 
-        prevJobs.map(j => ({
+      setCompanyJobs((prevJobs) =>
+        prevJobs.map((j) => ({
           ...j,
-          applications: (j as any).applications?.map((a: any) => 
+          applications: (j as any).applications?.map((a: any) =>
             a.id === appId ? { ...a, status } : a
-          )
+          ),
         }))
       );
     } catch {
@@ -144,7 +174,9 @@ export default function ManageJobs() {
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight truncate">
               Manage Job Postings
             </h1>
-            <p className="text-sm md:text-base text-slate-500 font-medium mt-1">Review applicant lists and control your active hiring drives.</p>
+            <p className="text-sm md:text-base text-slate-500 font-medium mt-1">
+              Review applicant lists and control your active hiring drives.
+            </p>
           </div>
           {/* <div className="flex items-center gap-3 shrink-0">
             <button
@@ -159,25 +191,36 @@ export default function ManageJobs() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-10">
           {stats.map((stat, idx) => (
-            <div key={idx} className="bg-white rounded-2xl md:rounded-[2rem] p-5 md:p-6 border border-slate-100 shadow-sm overflow-hidden relative group">
-               <div className={`absolute top-0 right-0 w-20 h-20 -mr-8 -mt-8 rounded-full opacity-5 group-hover:scale-110 transition-transform
-                  ${stat.color === 'slate' ? 'bg-slate-900' : ''}
-                  ${stat.color === 'blue' ? 'bg-blue-600' : ''}
-                  ${stat.color === 'amber' ? 'bg-amber-600' : ''}
-               `}></div>
-               <div className="flex items-center gap-4 relative z-10">
-                  <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl shrink-0
-                    ${stat.color === 'slate' ? 'bg-slate-50 text-slate-600' : ''}
-                    ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600' : ''}
-                    ${stat.color === 'amber' ? 'bg-amber-50 text-amber-600' : ''}
-                  `}>
-                    {stat.icon}
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest truncate">{stat.label}</p>
-                    <h3 className="text-xl md:text-3xl font-black text-slate-900">{stat.val}</h3>
-                  </div>
-               </div>
+            <div
+              key={idx}
+              className="bg-white rounded-2xl md:rounded-[2rem] p-5 md:p-6 border border-slate-100 shadow-sm overflow-hidden relative group"
+            >
+              <div
+                className={`absolute top-0 right-0 w-20 h-20 -mr-8 -mt-8 rounded-full opacity-5 group-hover:scale-110 transition-transform
+                  ${stat.color === "slate" ? "bg-slate-900" : ""}
+                  ${stat.color === "blue" ? "bg-blue-600" : ""}
+                  ${stat.color === "amber" ? "bg-amber-600" : ""}
+               `}
+              ></div>
+              <div className="flex items-center gap-4 relative z-10">
+                <div
+                  className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl shrink-0
+                    ${stat.color === "slate" ? "bg-slate-50 text-slate-600" : ""}
+                    ${stat.color === "blue" ? "bg-blue-50 text-blue-600" : ""}
+                    ${stat.color === "amber" ? "bg-amber-50 text-amber-600" : ""}
+                  `}
+                >
+                  {stat.icon}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest truncate">
+                    {stat.label}
+                  </p>
+                  <h3 className="text-xl md:text-3xl font-black text-slate-900">
+                    {stat.val}
+                  </h3>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -203,19 +246,28 @@ export default function ManageJobs() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-slate-400 font-medium mt-4">Organizing your postings...</p>
+              <p className="text-slate-400 font-medium mt-4">
+                Organizing your postings...
+              </p>
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2.5rem] border border-dashed border-slate-200">
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300 text-4xl">
                 <FiBriefcase />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">No jobs found</h2>
-              <p className="text-slate-400 text-sm mt-2 max-w-xs text-center">We couldn't find any postings matching your criteria.</p>
+              <h2 className="text-xl font-bold text-slate-900">
+                No jobs found
+              </h2>
+              <p className="text-slate-400 text-sm mt-2 max-w-xs text-center">
+                We couldn't find any postings matching your criteria.
+              </p>
             </div>
           ) : (
             filteredJobs.map((j) => (
-              <div key={j.id} className="group bg-white p-6 md:p-8 rounded-3xl lg:rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:border-blue-100 transition-all duration-300 overflow-hidden relative">
+              <div
+                key={j.id}
+                className="group bg-white p-6 md:p-8 rounded-3xl lg:rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 hover:border-blue-100 transition-all duration-300 overflow-hidden relative"
+              >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
                   <div className="flex items-start md:items-center gap-5 overflow-hidden">
                     <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-100 transition-all shrink-0">
@@ -226,13 +278,27 @@ export default function ManageJobs() {
                         <h2 className="text-lg md:text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                           {j.title}
                         </h2>
-                        <Badge variant={j.status === 'ACTIVE' ? 'green' : 'amber'}>{j.status}</Badge>
+                        <Badge
+                          variant={j.status === "ACTIVE" ? "green" : "amber"}
+                        >
+                          {j.status}
+                        </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-slate-500 font-medium">
-                        <span className="flex items-center gap-1.5"><FiMapPin className="text-slate-400" /> {j.location}</span>
-                        <span className="flex items-center gap-1.5"><FiClock className="text-slate-400" /> Type: {j.type}</span>
-                        <span className="flex items-center gap-1.5 font-bold text-emerald-600"><FiDollarSign className="text-emerald-400" /> ₹{j.salary}</span>
-                        <span className="flex items-center gap-1.5"><FiCalendar className="text-slate-400" /> Posted: {new Date(j.createdAt as string).toLocaleDateString()}</span>
+                        <span className="flex items-center gap-1.5">
+                          <FiMapPin className="text-slate-400" /> {j.location}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <FiClock className="text-slate-400" /> Type: {j.type}
+                        </span>
+                        <span className="flex items-center gap-1.5 font-bold text-emerald-600">
+                          <FiDollarSign className="text-emerald-400" /> ₹
+                          {j.salary}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <FiCalendar className="text-slate-400" /> Posted:{" "}
+                          {new Date(j.createdAt as string).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -242,18 +308,20 @@ export default function ManageJobs() {
                       onClick={() => handleOpenModal(j)}
                       className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-blue-600 shadow-lg shadow-slate-200 hover:shadow-blue-100 transition-all group/btn cursor-pointer whitespace-nowrap"
                     >
-                      <FiUsers /> View Applicants <FiArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                      <FiUsers /> View Applicants{" "}
+                      <FiArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                   </div>
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                   <p className="text-slate-500 text-sm leading-relaxed line-clamp-1 italic max-w-2xl">
-                     "{j.description}"
-                   </p>
-                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-500/70 bg-rose-50/50 px-3 py-1 rounded-full border border-rose-100/50 w-fit">
-                      <FiClock /> Ends {new Date(j.deadline as string).toLocaleDateString()}
-                   </div>
+                  <p className="text-slate-500 text-sm leading-relaxed line-clamp-1 italic max-w-2xl">
+                    "{j.description}"
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-rose-500/70 bg-rose-50/50 px-3 py-1 rounded-full border border-rose-100/50 w-fit">
+                    <FiClock /> Ends{" "}
+                    {new Date(j.deadline as string).toLocaleDateString()}
+                  </div>
                 </div>
               </div>
             ))
@@ -274,52 +342,81 @@ export default function ManageJobs() {
 
             <div className="p-8 lg:p-10">
               <div className="mb-8 pr-12">
-                <h3 className="text-2xl font-black text-slate-900 leading-tight">Applicants for {selectedJob?.title}</h3>
-                <p className="text-sm text-slate-500 font-medium mt-1">Review student profiles and update their hiring status.</p>
+                <h3 className="text-2xl font-black text-slate-900 leading-tight">
+                  Applicants for {selectedJob?.title}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium mt-1">
+                  Review student profiles and update their hiring status.
+                </p>
               </div>
 
               {jobApplications.length === 0 ? (
                 <div className="text-center py-16 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                   <FiUsers className="text-4xl text-slate-300 mx-auto mb-4" />
-                   <p className="text-slate-500 font-bold">No applications received yet.</p>
+                  <FiUsers className="text-4xl text-slate-300 mx-auto mb-4" />
+                  <p className="text-slate-500 font-bold">
+                    No applications received yet.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                   {jobApplications.map((a) => (
-                    <div key={a.id} className="group p-5 border border-slate-100 rounded-3xl hover:border-blue-100 hover:bg-blue-50/10 transition-all">
+                    <div
+                      key={a.id}
+                      className="group p-5 border border-slate-100 rounded-3xl hover:border-blue-100 hover:bg-blue-50/10 transition-all"
+                    >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                         <div className="flex items-center gap-4 overflow-hidden">
                           <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xl shadow-inner shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-all">
                             {a.student?.name?.charAt(0) || "S"}
                           </div>
                           <div className="overflow-hidden">
-                            <p className="font-bold text-slate-900 text-lg truncate">{a.student?.name || "N/A"}</p>
-                            <p className="text-xs text-slate-500 font-medium truncate">{a.student?.email || "N/A"}</p>
+                            <p className="font-bold text-slate-900 text-lg truncate">
+                              {a.student?.name || "N/A"}
+                            </p>
+                            <p className="text-xs text-slate-500 font-medium truncate">
+                              {a.student?.email || "N/A"}
+                            </p>
                             <div className="mt-2 flex items-center gap-2">
-                               <Badge variant={a.status === 'ACCEPTED' ? 'green' : a.status === 'REJECTED' ? 'rose' : 'amber'}>
-                                 {a.status}
-                               </Badge>
+                              <Badge
+                                variant={
+                                  a.status === "ACCEPTED"
+                                    ? "green"
+                                    : a.status === "REJECTED"
+                                      ? "rose"
+                                      : "amber"
+                                }
+                              >
+                                {a.status}
+                              </Badge>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-wrap items-center gap-2">
                           <button
-                            onClick={() => a.student?.resumeUrl ? window.open(a.student.resumeUrl, "_blank") : toast.error("No resume")}
+                            onClick={() =>
+                              a.student?.resumeUrl
+                                ? window.open(a.student.resumeUrl, "_blank")
+                                : toast.error("No resume")
+                            }
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-100 transition-all cursor-pointer"
                           >
                             <FiDownload /> Resume
                           </button>
-                          {a.status === 'PENDING' && (
+                          {a.status === "PENDING" && (
                             <>
                               <button
-                                onClick={() => handleAcceptReject(a.id, "ACCEPTED")}
+                                onClick={() =>
+                                  handleAcceptReject(a.id, "ACCEPTED")
+                                }
                                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-all cursor-pointer"
                               >
                                 <FiCheckCircle /> Accept
                               </button>
                               <button
-                                onClick={() => handleAcceptReject(a.id, "REJECTED")}
+                                onClick={() =>
+                                  handleAcceptReject(a.id, "REJECTED")
+                                }
                                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl font-bold text-xs hover:bg-rose-100 transition-all cursor-pointer"
                               >
                                 <FiXCircle /> Reject

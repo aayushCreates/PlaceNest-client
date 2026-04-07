@@ -205,13 +205,13 @@ export default function JobDetails() {
             <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
-              <div className="flex items-start md:items-center gap-6 overflow-hidden">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 overflow-hidden">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-slate-400 text-3xl shrink-0 uppercase shadow-inner">
                   {jobDetail?.company?.name?.charAt(0) || "J"}
                 </div>
-                <div className="overflow-hidden">
+                <div className="w-full">
                   <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 leading-tight truncate">
+                    <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 leading-tight">
                       {jobDetail?.title}
                     </h1>
                     <Badge
@@ -224,23 +224,22 @@ export default function JobDetails() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm md:text-base text-slate-500 font-medium">
-                    <div className="flex items-center gap-2 truncate">
-                      <FiBriefcase className="text-blue-500" />{" "}
-                      {jobDetail?.company?.name}
+                    <div className="flex items-center gap-2">
+                      <FiBriefcase className="text-blue-500 shrink-0" />{" "}
+                      <span className="break-words">{jobDetail?.company?.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FiMapPin className="text-blue-500" />{" "}
-                      {jobDetail?.location}
+                      <FiMapPin className="text-blue-500 shrink-0" />{" "}
+                      <span className="break-words">{jobDetail?.location}</span>
                     </div>
                     <div className="flex items-center gap-2 text-emerald-600 font-bold whitespace-nowrap">
-                      <FiDollarSign className="text-emerald-500" /> ₹
-                      {jobDetail?.salary}
+                      ₹{jobDetail?.salary}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 shrink-0 min-w-[220px]">
+              <div className="flex flex-col gap-4 shrink-0 w-full lg:w-auto lg:min-w-[220px]">
                 {applicationDetails ? (
                   <div
                     className={`p-5 rounded-2xl border flex flex-col items-center gap-2 text-center transition-all ${statusConfig[applicationDetails.status]?.color || "bg-slate-50 border-slate-100 shadow-inner"}`}
@@ -268,7 +267,7 @@ export default function JobDetails() {
                   </button>
                 )}
 
-                <div className="flex items-center justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <span className="flex items-center gap-1.5">
                     <FiClock /> Posted Recently
                   </span>
@@ -365,49 +364,8 @@ export default function JobDetails() {
                       </span>
                     </div>
                   </div>
-
-                  <button className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    Full Profile <FiExternalLink />
-                  </button>
                 </div>
               </div>
-
-              {/* Statistics Card */}
-              <InfoBlock
-                icon={FiUsers}
-                title="Market Insights"
-                iconBg="bg-purple-50"
-                iconColor="text-purple-600"
-              >
-                <div className="space-y-5">
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Total Applicants
-                    </span>
-                    <span className="font-black text-slate-900 text-sm">
-                      {jobDetail?.applications?.length || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Hiring Status
-                    </span>
-                    <Badge
-                      variant={jobDetail?.status === "OPEN" ? "green" : "rose"}
-                    >
-                      {jobDetail?.status || "OPEN"}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      Profile Match
-                    </span>
-                    <span className="font-black text-blue-600 text-xs flex items-center gap-1.5">
-                      <FiCheckCircle /> Verified
-                    </span>
-                  </div>
-                </div>
-              </InfoBlock>
             </div>
           </div>
         </div>

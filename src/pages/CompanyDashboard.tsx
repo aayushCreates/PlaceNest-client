@@ -1,15 +1,12 @@
 import { 
-  FiMapPin, 
-  FiCalendar, 
-  FiPlus, 
+  FiMapPin,
   FiBriefcase, 
   FiUsers, 
   FiCheckCircle, 
   FiTrendingUp, 
   FiArrowRight, 
   FiClock,
-  FiSearch,
-  FiUser
+  FiSearch
 } from "react-icons/fi";
 import SideBar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
@@ -121,14 +118,6 @@ export default function CompanyDashboard() {
             </h1>
             <p className="text-sm md:text-base text-slate-500 font-medium mt-1">Manage your recruitment pipeline and active job postings.</p>
           </div>
-          {/* <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => navigate("/company/post-job")}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl md:rounded-2xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 cursor-pointer"
-            >
-              <FiPlus className="text-lg" /> Post New Job
-            </button>
-          </div> */}
         </header>
 
         {/* Stats Grid */}
@@ -186,7 +175,7 @@ export default function CompanyDashboard() {
                   <p className="text-slate-400 font-medium mt-4">Syncing your active roles...</p>
                 </div>
               ) : recentJobs.length === 0 ? (
-                <div className="text-center py-12">
+                <div className="text-center py-1">
                   <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                     <FiSearch className="text-3xl" />
                   </div>
@@ -196,7 +185,7 @@ export default function CompanyDashboard() {
               ) : (
                 <div className="space-y-4">
                   {recentJobs.map((j) => (
-                    <div key={j.id} className="group flex items-center justify-between p-5 border border-slate-50 rounded-2xl hover:border-blue-100 hover:bg-blue-50/10 transition-all gap-4">
+                    <div key={j.id} className="group flex items-center justify-between p-5 border border-gray-500/10 rounded-2xl hover:border-blue-100 hover:bg-blue-50/10 transition-all gap-4">
                       <div className="flex items-center gap-4 overflow-hidden">
                         <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-xl text-slate-400 group-hover:text-blue-600 transition-colors shrink-0">
                           <FiBriefcase />
@@ -221,7 +210,7 @@ export default function CompanyDashboard() {
           </section>
 
           {/* Recent Applications */}
-          <section className="space-y-6">
+          {/* <section className="space-y-6">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-100">
@@ -275,7 +264,7 @@ export default function CompanyDashboard() {
                 </div>
               )}
             </div>
-          </section>
+          </section> */}
         </div>
       </main>
     </div>
